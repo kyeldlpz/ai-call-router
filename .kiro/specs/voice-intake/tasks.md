@@ -1,403 +1,296 @@
-# Voice Intake MVP — Implementation Tasks
+# Implementation Plan: Voice Intake MVP
+
+## Overview
+
+This implementation plan covers the Voice Intake MVP for RecoverAi: a real-time AI voice conversation system with live transcription. The plan is organized into 20 tasks designed for parallel execution by frontend and backend developers over 5 days.
 
 ## Task Dependency Graph
 
-```
-T1 → T2 → T3 ─┐
-               ├→ T7 → T8 → T9 → T10
-T4 → T5 → T6 ─┘         │
-                          ▼
-                    T11 → T12 → T13
-                          │
-                          ▼
-                    T14 → T15 → T16
-                          │
-                          ▼
-                    T17 → T18 → T19 → T20
+```json
+{
+  "waves": [
+    ["T1", "T2"],
+    ["T3", "T4", "T6", "T7"],
+    ["T5", "T8", "T11"],
+    ["T9", "T10", "T12", "T15"],
+    ["T13", "T14", "T16", "T17"],
+    ["T18", "T19", "T20"]
+  ]
+}
 ```
 
----
-
-## Phase 1: Project Setup
+## Tasks
 
 ### Task T1: Initialize Next.js Frontend
-
-- **ID:** T1
-- **Description:** Create the Next.js frontend application with TypeScript, Tailwind CSS, and shadcn/ui. Configure the project structure per the structure steering document.
-- **Dependencies:** None
-- **Owner:** Frontend
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] `frontend/` directory created with Next.js 14+ App Router
-  - [ ] TypeScript strict mode enabled in `tsconfig.json`
-  - [ ] Tailwind CSS configured and working
-  - [ ] shadcn/ui initialized with `components.json`
-  - [ ] Folder structure matches steering document: `src/app/`, `src/components/`, `src/context/`, `src/hooks/`, `src/lib/`, `src/types/`
-  - [ ] `npm run dev` starts without errors
-  - [ ] Base `layout.tsx` and `page.tsx` render a placeholder
+- **Requirements**: Requirement 1, Requirement 4
+- **Description**: Create the Next.js frontend application with TypeScript, Tailwind CSS, and shadcn/ui. Configure the project structure per the structure steering document.
+- **Dependencies**: None
+- **Acceptance Criteria**:
+  - [ ] 1.1 Create `frontend/` directory with Next.js 14+ App Router
+  - [ ] 1.2 Enable TypeScript strict mode in tsconfig.json
+  - [ ] 1.3 Configure Tailwind CSS and verify it works
+  - [ ] 1.4 Initialize shadcn/ui with components.json
+  - [ ] 1.5 Create folder structure: src/app, src/components, src/context, src/hooks, src/lib, src/types
+  - [ ] 1.6 Verify npm run dev starts without errors
+  - [ ] 1.7 Create base layout.tsx and page.tsx that render a placeholder
 
 ### Task T2: Initialize FastAPI Backend
-
-- **ID:** T2
-- **Description:** Create the FastAPI backend application with the project structure defined in the steering document. Configure CORS, health endpoint, and environment variable loading.
-- **Dependencies:** None
-- **Owner:** Backend
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] `backend/` directory created with structure per steering document
-  - [ ] FastAPI app created in `main.py` with CORS middleware (localhost origins)
-  - [ ] Health endpoint at `GET /api/v1/health` returns `{"success": true, "data": {"status": "ok"}}`
-  - [ ] `config.py` loads environment variables (OPENAI_API_KEY)
-  - [ ] `.env.example` created with required variables
-  - [ ] `requirements.txt` includes: fastapi, uvicorn, websockets, python-dotenv, pydantic
-  - [ ] `uvicorn app.main:app --reload` starts without errors
+- **Requirements**: Requirement 5, Requirement 8
+- **Description**: Create the FastAPI backend application with the project structure defined in the steering document. Configure CORS, health endpoint, and environment variable loading.
+- **Dependencies**: None
+- **Acceptance Criteria**:
+  - [ ] 2.1 Create backend/ directory with structure per steering document
+  - [ ] 2.2 Create FastAPI app in main.py with CORS middleware for localhost origins
+  - [ ] 2.3 Implement health endpoint at GET /api/v1/health returning success envelope
+  - [ ] 2.4 Create config.py that loads environment variables including OPENAI_API_KEY
+  - [ ] 2.5 Create .env.example with required variables
+  - [ ] 2.6 Create requirements.txt with fastapi, uvicorn, websockets, python-dotenv, pydantic
+  - [ ] 2.7 Verify uvicorn app.main:app --reload starts without errors
 
 ### Task T3: Create Shared Types and Models
-
-- **ID:** T3
-- **Description:** Define all TypeScript types for the frontend and all Pydantic models for the backend. These are the data contracts that both sides agree on.
-- **Dependencies:** T1, T2
-- **Owner:** Full Stack
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/types/index.ts` contains: `CallStatus`, `CallState`, `TranscriptMessage`, `WsMessage` types
-  - [ ] `backend/app/models/call.py` contains: `CallCreate`, `CallResponse`, `CallSession` Pydantic models
-  - [ ] `backend/app/models/transcript.py` contains: `TranscriptEntry` Pydantic model
-  - [ ] Types match the API contracts defined in the design document
-  - [ ] No `any` types in TypeScript
-
----
-
-## Phase 2: Realtime Voice Connection
+- **Requirements**: Requirement 4, Requirement 6
+- **Description**: Define all TypeScript types for the frontend and all Pydantic models for the backend as shared data contracts.
+- **Dependencies**: T1, T2
+- **Acceptance Criteria**:
+  - [ ] 3.1 Create frontend/src/types/index.ts with CallStatus, CallState, TranscriptMessage, WsMessage types
+  - [ ] 3.2 Create backend/app/models/call.py with CallCreate, CallResponse, CallSession Pydantic models
+  - [ ] 3.3 Create backend/app/models/transcript.py with TranscriptEntry Pydantic model
+  - [ ] 3.4 Verify types match the API contracts in the design document
+  - [ ] 3.5 Verify no any types exist in TypeScript code
 
 ### Task T4: Implement OpenAI Realtime API Client
-
-- **ID:** T4
-- **Description:** Build the backend service that connects to the OpenAI Realtime API via WebSocket. Handle session creation, configuration, and event parsing.
-- **Dependencies:** T2
-- **Owner:** Backend / AI
-- **Estimated Complexity:** High
-- **Acceptance Criteria:**
-  - [ ] `backend/app/services/voice_intake.py` created
-  - [ ] Service can open a WebSocket connection to `wss://api.openai.com/v1/realtime`
-  - [ ] Service sends `session.update` with correct configuration (PCM16, server_vad, voice, transcription)
-  - [ ] Service receives and parses `session.created` event
-  - [ ] Service handles `error` events from OpenAI
-  - [ ] Service supports `input_audio_buffer.append` for sending audio
-  - [ ] Service parses `response.audio.delta`, `response.audio_transcript.delta`, `conversation.item.input_audio_transcription.completed` events
-  - [ ] Connection uses API key from environment config
-  - [ ] 30-second timeout on initial connection
+- **Requirements**: Requirement 2, Requirement 3
+- **Description**: Build the backend service that connects to the OpenAI Realtime API via WebSocket. Handle session creation, configuration, and event parsing.
+- **Dependencies**: T2
+- **Acceptance Criteria**:
+  - [ ] 4.1 Create backend/app/services/voice_intake.py
+  - [ ] 4.2 Implement WebSocket connection to wss://api.openai.com/v1/realtime
+  - [ ] 4.3 Send session.update with PCM16, server_vad, voice, and transcription config
+  - [ ] 4.4 Parse session.created event to confirm connection
+  - [ ] 4.5 Handle error events from OpenAI
+  - [ ] 4.6 Implement input_audio_buffer.append for sending audio
+  - [ ] 4.7 Parse response.audio.delta, response.audio_transcript.delta, and transcription.completed events
+  - [ ] 4.8 Load API key from environment config
+  - [ ] 4.9 Implement 30-second timeout on initial connection
 
 ### Task T5: Build WebSocket Session Handler
-
-- **ID:** T5
-- **Description:** Create the FastAPI WebSocket endpoint that bridges the browser and OpenAI. Implements bidirectional audio/transcript relay.
-- **Dependencies:** T4, T3
-- **Owner:** Backend
-- **Estimated Complexity:** High
-- **Acceptance Criteria:**
-  - [ ] WebSocket endpoint at `/ws/v1/call/{call_id}` accepts browser connections
-  - [ ] On connect: opens OpenAI Realtime API session via voice_intake service
-  - [ ] Forwards `audio_input` messages from browser to OpenAI as `input_audio_buffer.append`
-  - [ ] Forwards `response.audio.delta` from OpenAI to browser as `audio_delta`
-  - [ ] Forwards transcript events from OpenAI to browser as `transcript_delta` and `transcript_complete`
-  - [ ] Sends `call_status` message when session is established
-  - [ ] Handles `call_end` message from browser: closes OpenAI session, closes WebSocket
-  - [ ] Both relay directions run concurrently via `asyncio.gather`
-  - [ ] Clean disconnection handling (no orphaned connections)
+- **Requirements**: Requirement 1, Requirement 3, Requirement 4
+- **Description**: Create the FastAPI WebSocket endpoint that bridges the browser and OpenAI with bidirectional audio/transcript relay.
+- **Dependencies**: T4, T3
+- **Acceptance Criteria**:
+  - [ ] 5.1 Create WebSocket endpoint at /ws/v1/call/{call_id} that accepts browser connections
+  - [ ] 5.2 On connect open OpenAI Realtime API session via voice_intake service
+  - [ ] 5.3 Forward audio_input messages from browser to OpenAI as input_audio_buffer.append
+  - [ ] 5.4 Forward response.audio.delta from OpenAI to browser as audio_delta
+  - [ ] 5.5 Forward transcript events from OpenAI to browser as transcript_delta and transcript_complete
+  - [ ] 5.6 Send call_status message when session is established
+  - [ ] 5.7 Handle call_end message: close OpenAI session and WebSocket
+  - [ ] 5.8 Run both relay directions concurrently via asyncio.gather
+  - [ ] 5.9 Implement clean disconnection handling with no orphaned connections
 
 ### Task T6: Implement Call Management REST Endpoints
-
-- **ID:** T6
-- **Description:** Create REST endpoints for call lifecycle management: create call, get call state, end call.
-- **Dependencies:** T3, T2
-- **Owner:** Backend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `POST /api/v1/calls` creates a new call, returns `call_id` and `websocket_url`
-  - [ ] `GET /api/v1/calls/{call_id}` returns call state and transcript
-  - [ ] `POST /api/v1/calls/{call_id}/end` ends an active call
-  - [ ] In-memory call repository stores active calls (`backend/app/repositories/call_repository.py`)
-  - [ ] All responses use the standard API envelope format
-  - [ ] 404 returned for non-existent call_id
-  - [ ] Transcript is accumulated in the repository as messages arrive
-
----
-
-## Phase 3: AI Conversation
+- **Requirements**: Requirement 1, Requirement 5, Requirement 6
+- **Description**: Create REST endpoints for call lifecycle management: create call, get call state, end call.
+- **Dependencies**: T3, T2
+- **Acceptance Criteria**:
+  - [ ] 6.1 Implement POST /api/v1/calls that creates a new call and returns call_id and websocket_url
+  - [ ] 6.2 Implement GET /api/v1/calls/{call_id} that returns call state and transcript
+  - [ ] 6.3 Implement POST /api/v1/calls/{call_id}/end that ends an active call
+  - [ ] 6.4 Create in-memory call repository at backend/app/repositories/call_repository.py
+  - [ ] 6.5 Verify all responses use the standard API envelope format
+  - [ ] 6.6 Return 404 for non-existent call_id
+  - [ ] 6.7 Accumulate transcript in the repository as messages arrive
 
 ### Task T7: Create Voice Agent System Prompt
-
-- **ID:** T7
-- **Description:** Write the system prompt that defines the AI's persona as a professional collections intake specialist. Store in the prompts directory.
-- **Dependencies:** T4
-- **Owner:** AI
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] `backend/app/prompts/intake_system.py` created with `INTAKE_SYSTEM_PROMPT` constant
-  - [ ] Prompt defines AI as professional collections intake specialist
-  - [ ] Prompt instructs concise responses (2-3 sentences per turn)
-  - [ ] Prompt prohibits asking for sensitive info (SSN, full card numbers)
-  - [ ] Prompt sets empathetic, non-threatening tone
-  - [ ] Prompt instructs AI to greet caller on first turn
-  - [ ] Version comment included at top of file
+- **Requirements**: Requirement 2, Requirement 3
+- **Description**: Write the system prompt defining the AI persona as a professional collections intake specialist.
+- **Dependencies**: T4
+- **Acceptance Criteria**:
+  - [ ] 7.1 Create backend/app/prompts/intake_system.py with INTAKE_SYSTEM_PROMPT constant
+  - [ ] 7.2 Define AI as professional collections intake specialist
+  - [ ] 7.3 Instruct concise responses at 2-3 sentences per turn
+  - [ ] 7.4 Prohibit asking for sensitive info like SSN or full card numbers
+  - [ ] 7.5 Set empathetic non-threatening tone
+  - [ ] 7.6 Instruct AI to greet caller on first turn
+  - [ ] 7.7 Include version comment at top of file
 
 ### Task T8: Implement Browser Audio Capture
-
-- **ID:** T8
-- **Description:** Build the frontend hook that captures microphone audio using AudioWorklet, converts to PCM16, and sends via WebSocket.
-- **Dependencies:** T1, T5
-- **Owner:** Frontend
-- **Estimated Complexity:** High
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/hooks/use-audio.ts` created
-  - [ ] Hook requests microphone permission via `navigator.mediaDevices.getUserMedia`
-  - [ ] AudioWorklet captures raw PCM16 at 24kHz mono
-  - [ ] Audio chunks are base64 encoded and sent over WebSocket as `audio_input` messages
-  - [ ] Hook provides `startCapture()` and `stopCapture()` methods
-  - [ ] Hook handles permission denial gracefully (returns error state)
-  - [ ] Audio capture stops when `stopCapture()` is called (releases microphone)
+- **Requirements**: Requirement 1, Requirement 3
+- **Description**: Build the frontend hook that captures microphone audio using AudioWorklet, converts to PCM16, and sends via WebSocket.
+- **Dependencies**: T1, T5
+- **Acceptance Criteria**:
+  - [ ] 8.1 Create frontend/src/hooks/use-audio.ts
+  - [ ] 8.2 Request microphone permission via navigator.mediaDevices.getUserMedia
+  - [ ] 8.3 Capture raw PCM16 at 24kHz mono using AudioWorklet
+  - [ ] 8.4 Base64 encode audio chunks and send over WebSocket as audio_input messages
+  - [ ] 8.5 Provide startCapture() and stopCapture() methods
+  - [ ] 8.6 Handle permission denial gracefully with error state
+  - [ ] 8.7 Release microphone when stopCapture() is called
 
 ### Task T9: Implement Browser Audio Playback
-
-- **ID:** T9
-- **Description:** Build the frontend logic that receives AI audio chunks via WebSocket and plays them through the browser speakers.
-- **Dependencies:** T8
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] Audio playback integrated into WebSocket message handling
-  - [ ] `audio_delta` messages decoded from base64 to PCM16
-  - [ ] Audio played via AudioContext with proper buffering
-  - [ ] No audible gaps or clicks between audio chunks
-  - [ ] Playback stops cleanly on call end
-  - [ ] AudioContext created on user gesture (Start Call click) to satisfy browser autoplay policy
+- **Requirements**: Requirement 2, Requirement 3
+- **Description**: Build frontend logic that receives AI audio chunks via WebSocket and plays them through browser speakers.
+- **Dependencies**: T8
+- **Acceptance Criteria**:
+  - [ ] 9.1 Integrate audio playback into WebSocket message handling
+  - [ ] 9.2 Decode audio_delta messages from base64 to PCM16
+  - [ ] 9.3 Play audio via AudioContext with proper buffering
+  - [ ] 9.4 Verify no audible gaps or clicks between audio chunks
+  - [ ] 9.5 Stop playback cleanly on call end
+  - [ ] 9.6 Create AudioContext on user gesture to satisfy browser autoplay policy
 
 ### Task T10: End-to-End Voice Conversation Test
-
-- **ID:** T10
-- **Description:** Manual integration test: verify that clicking Start Call, speaking, hearing AI response, and clicking End Call works end-to-end.
-- **Dependencies:** T7, T8, T9, T5
-- **Owner:** Full Stack
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] Start Call → AI greeting plays within 3 seconds
-  - [ ] Speak into microphone → AI responds within 3 seconds
-  - [ ] AI response is audible and contextually appropriate
-  - [ ] Multi-turn conversation works (3+ turns without breaking)
-  - [ ] End Call terminates cleanly (no lingering connections)
-  - [ ] No console errors during happy path
-
----
-
-## Phase 4: Live Transcript
+- **Requirements**: Requirement 3, Requirement 8
+- **Description**: Manual integration test verifying the full voice conversation flow works end-to-end.
+- **Dependencies**: T7, T8, T9, T5
+- **Acceptance Criteria**:
+  - [ ] 10.1 Verify Start Call results in AI greeting playing within 3 seconds
+  - [ ] 10.2 Verify speaking into microphone produces AI response within 3 seconds
+  - [ ] 10.3 Verify AI response is audible and contextually appropriate
+  - [ ] 10.4 Verify multi-turn conversation works for 3+ turns without breaking
+  - [ ] 10.5 Verify End Call terminates cleanly with no lingering connections
+  - [ ] 10.6 Verify no console errors during happy path
 
 ### Task T11: Implement WebSocket Client Hook
-
-- **ID:** T11
-- **Description:** Build the frontend WebSocket hook that manages the connection lifecycle, message parsing, and reconnection logic.
-- **Dependencies:** T5, T1
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/hooks/use-websocket.ts` created
-  - [ ] Hook connects to `/ws/v1/call/{call_id}` WebSocket endpoint
-  - [ ] Hook parses incoming messages by `type` field
-  - [ ] Hook provides `send()` method for outgoing messages
-  - [ ] Hook provides connection state: `connecting`, `open`, `closed`, `error`
-  - [ ] Reconnection logic: 3 retries with exponential backoff (1s, 2s, 4s)
-  - [ ] Clean disconnect on unmount or call end
+- **Requirements**: Requirement 4, Requirement 7
+- **Description**: Build the frontend WebSocket hook managing connection lifecycle, message parsing, and reconnection logic.
+- **Dependencies**: T5, T1
+- **Acceptance Criteria**:
+  - [ ] 11.1 Create frontend/src/hooks/use-websocket.ts
+  - [ ] 11.2 Connect to /ws/v1/call/{call_id} WebSocket endpoint
+  - [ ] 11.3 Parse incoming messages by type field
+  - [ ] 11.4 Provide send() method for outgoing messages
+  - [ ] 11.5 Provide connection state: connecting, open, closed, error
+  - [ ] 11.6 Implement reconnection with 3 retries and exponential backoff (1s, 2s, 4s)
+  - [ ] 11.7 Clean disconnect on unmount or call end
 
 ### Task T12: Implement Call State Context and Reducer
-
-- **ID:** T12
-- **Description:** Build the React Context and useReducer that manages global call state, including transcript accumulation.
-- **Dependencies:** T3, T11
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/context/call-context.tsx` created with `CallProvider` and `useCallContext` hook
-  - [ ] `frontend/src/context/call-reducer.ts` handles all `CallAction` types
-  - [ ] `TRANSCRIPT_ADD` adds a complete message to the transcript array
-  - [ ] `TRANSCRIPT_DELTA` appends text to the last AI message (or creates new if none streaming)
-  - [ ] `CALL_INIT`, `CALL_CONNECTED`, `CALL_ENDING`, `CALL_COMPLETE`, `CALL_ERROR`, `CALL_RESET` transitions work correctly
-  - [ ] `DURATION_TICK` increments duration by 1 second
-  - [ ] Context wraps the entire app in `layout.tsx`
+- **Requirements**: Requirement 1, Requirement 4, Requirement 5
+- **Description**: Build the React Context and useReducer that manages global call state including transcript accumulation.
+- **Dependencies**: T3, T11
+- **Acceptance Criteria**:
+  - [ ] 12.1 Create frontend/src/context/call-context.tsx with CallProvider and useCallContext hook
+  - [ ] 12.2 Create frontend/src/context/call-reducer.ts handling all CallAction types
+  - [ ] 12.3 Implement TRANSCRIPT_ADD that adds a complete message to transcript array
+  - [ ] 12.4 Implement TRANSCRIPT_DELTA that appends text to last AI message or creates new one
+  - [ ] 12.5 Implement CALL_INIT, CALL_CONNECTED, CALL_ENDING, CALL_COMPLETE, CALL_ERROR, CALL_RESET transitions
+  - [ ] 12.6 Implement DURATION_TICK that increments duration by 1 second
+  - [ ] 12.7 Wrap entire app with context in layout.tsx
 
 ### Task T13: Build Transcript Panel Component
-
-- **ID:** T13
-- **Description:** Build the TranscriptPanel component that displays live-streaming transcript messages with speaker labels, timestamps, and auto-scroll.
-- **Dependencies:** T12
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/components/transcript/transcript-panel.tsx` created
-  - [ ] `frontend/src/components/transcript/transcript-message.tsx` created
-  - [ ] Panel displays all messages from `callState.transcript`
-  - [ ] Each message shows: speaker icon/label, text, timestamp
-  - [ ] AI messages styled differently from Caller messages (different background color)
-  - [ ] Streaming AI messages show animated cursor/indicator
-  - [ ] Panel auto-scrolls to bottom on new messages
-  - [ ] Empty state shown when no transcript exists: "Start a call to see the transcript"
-  - [ ] Uses shadcn/ui Card and ScrollArea components
-
----
-
-## Phase 5: Conversation History
+- **Requirements**: Requirement 4
+- **Description**: Build the TranscriptPanel component displaying live-streaming transcript messages with speaker labels, timestamps, and auto-scroll.
+- **Dependencies**: T12
+- **Acceptance Criteria**:
+  - [ ] 13.1 Create frontend/src/components/transcript/transcript-panel.tsx
+  - [ ] 13.2 Create frontend/src/components/transcript/transcript-message.tsx
+  - [ ] 13.3 Display all messages from callState.transcript
+  - [ ] 13.4 Show speaker icon/label, text, and timestamp for each message
+  - [ ] 13.5 Style AI messages differently from Caller messages with distinct background colors
+  - [ ] 13.6 Show animated cursor/indicator for streaming AI messages
+  - [ ] 13.7 Auto-scroll panel to bottom on new messages
+  - [ ] 13.8 Show empty state when no transcript exists
+  - [ ] 13.9 Use shadcn/ui Card and ScrollArea components
 
 ### Task T14: Implement Call Management Hook
-
-- **ID:** T14
-- **Description:** Build the `useCall` hook that orchestrates the full call lifecycle: create call via REST, connect WebSocket, manage audio, handle transcript events.
-- **Dependencies:** T11, T12, T8, T9
-- **Owner:** Frontend
-- **Estimated Complexity:** High
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/hooks/use-call.ts` created
-  - [ ] `startCall()`: calls POST /api/v1/calls → connects WebSocket → starts audio capture
-  - [ ] `endCall()`: sends `call_end` via WebSocket → stops audio → updates state
-  - [ ] Incoming WebSocket messages dispatched to call reducer
-  - [ ] `audio_delta` messages routed to audio playback
-  - [ ] `transcript_delta` and `transcript_complete` messages dispatched to reducer
-  - [ ] `call_status` messages trigger state transitions
-  - [ ] Duration timer starts on `CALL_CONNECTED`, stops on `CALL_COMPLETE`
-  - [ ] Error handling: connection failures dispatch `CALL_ERROR`
+- **Requirements**: Requirement 1, Requirement 3, Requirement 5
+- **Description**: Build the useCall hook orchestrating the full call lifecycle: REST calls, WebSocket, audio, and transcript events.
+- **Dependencies**: T11, T12, T8, T9
+- **Acceptance Criteria**:
+  - [ ] 14.1 Create frontend/src/hooks/use-call.ts
+  - [ ] 14.2 Implement startCall() that calls POST /api/v1/calls, connects WebSocket, starts audio capture
+  - [ ] 14.3 Implement endCall() that sends call_end via WebSocket, stops audio, updates state
+  - [ ] 14.4 Dispatch incoming WebSocket messages to call reducer
+  - [ ] 14.5 Route audio_delta messages to audio playback
+  - [ ] 14.6 Dispatch transcript_delta and transcript_complete messages to reducer
+  - [ ] 14.7 Trigger state transitions on call_status messages
+  - [ ] 14.8 Start duration timer on CALL_CONNECTED and stop on CALL_COMPLETE
+  - [ ] 14.9 Dispatch CALL_ERROR on connection failures
 
 ### Task T15: Implement Backend Transcript Storage
-
-- **ID:** T15
-- **Description:** Ensure the backend accumulates transcript messages in the call repository as they flow through the relay. Complete transcripts are available via GET endpoint after call ends.
-- **Dependencies:** T5, T6
-- **Owner:** Backend
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] WebSocket session handler saves each transcript entry to the call repository
-  - [ ] Both caller and AI messages are stored with speaker label and timestamp
-  - [ ] `GET /api/v1/calls/{call_id}` returns the complete transcript array
-  - [ ] Transcript persists in memory after call ends (until server restart)
-  - [ ] Message IDs are unique (UUID4 or incrementing)
+- **Requirements**: Requirement 6
+- **Description**: Ensure the backend accumulates transcript messages in the call repository as they flow through the relay.
+- **Dependencies**: T5, T6
+- **Acceptance Criteria**:
+  - [ ] 15.1 Save each transcript entry to the call repository from WebSocket session handler
+  - [ ] 15.2 Store both caller and AI messages with speaker label and timestamp
+  - [ ] 15.3 Return complete transcript array via GET /api/v1/calls/{call_id}
+  - [ ] 15.4 Persist transcript in memory after call ends until server restart
+  - [ ] 15.5 Generate unique message IDs using UUID4
 
 ### Task T16: Post-Call Transcript View
-
-- **ID:** T16
-- **Description:** After a call ends, the transcript remains visible and the UI shows a "Call Complete" state with the full conversation history.
-- **Dependencies:** T13, T14
-- **Owner:** Frontend
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] When call status is `complete`, transcript panel still shows all messages
-  - [ ] Call panel shows "Call Complete" status with final duration
-  - [ ] "New Call" button appears to reset state and start fresh
-  - [ ] Clicking "New Call" clears transcript and returns to idle state
-  - [ ] No data loss between `active` → `complete` transition
-
----
-
-## Phase 6: UI Polish
+- **Requirements**: Requirement 6
+- **Description**: After a call ends, the transcript remains visible and the UI shows a Call Complete state with full conversation history.
+- **Dependencies**: T13, T14
+- **Acceptance Criteria**:
+  - [ ] 16.1 Keep transcript panel showing all messages when call status is complete
+  - [ ] 16.2 Show Call Complete status with final duration in call panel
+  - [ ] 16.3 Display New Call button to reset state and start fresh
+  - [ ] 16.4 Clear transcript and return to idle state on New Call click
+  - [ ] 16.5 Verify no data loss during active to complete transition
 
 ### Task T17: Build Call Panel Component
-
-- **ID:** T17
-- **Description:** Build the CallPanel component with status indicator, Start/End Call buttons, and duration timer. Polished, demo-ready styling.
-- **Dependencies:** T12, T14
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/components/call/call-panel.tsx` created
-  - [ ] `frontend/src/components/call/call-controls.tsx` created (Start/End/New Call buttons)
-  - [ ] `frontend/src/components/call/call-status-badge.tsx` created (color-coded status)
-  - [ ] Status badge colors: idle=gray, connecting=yellow/pulse, active=green, ending=orange, complete=blue, error=red
-  - [ ] Start Call button: prominent, green, disabled during non-idle states
-  - [ ] End Call button: red, only visible during active state
-  - [ ] Duration timer: MM:SS format, updates every second during active call
-  - [ ] Uses shadcn/ui Button, Badge, Card components
+- **Requirements**: Requirement 1, Requirement 5, Requirement 8
+- **Description**: Build the CallPanel component with status indicator, Start/End Call buttons, and duration timer with polished demo-ready styling.
+- **Dependencies**: T12, T14
+- **Acceptance Criteria**:
+  - [ ] 17.1 Create frontend/src/components/call/call-panel.tsx
+  - [ ] 17.2 Create frontend/src/components/call/call-controls.tsx for Start/End/New Call buttons
+  - [ ] 17.3 Create frontend/src/components/call/call-status-badge.tsx with color-coded status
+  - [ ] 17.4 Apply status badge colors: idle=gray, connecting=yellow/pulse, active=green, ending=orange, complete=blue, error=red
+  - [ ] 17.5 Make Start Call button prominent and green, disabled during non-idle states
+  - [ ] 17.6 Make End Call button red and only visible during active state
+  - [ ] 17.7 Display duration timer in MM:SS format updating every second during active call
+  - [ ] 17.8 Use shadcn/ui Button, Badge, and Card components
 
 ### Task T18: Build Dashboard Layout
-
-- **ID:** T18
-- **Description:** Assemble the main dashboard page with two-column layout: Call Panel (left, narrow) and Transcript Panel (right, wide). Header with logo and connection status.
-- **Dependencies:** T17, T13
-- **Owner:** Frontend
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] `frontend/src/app/page.tsx` renders the full dashboard layout
-  - [ ] Two-column grid: left column ~35% (Call Panel), right column ~65% (Transcript Panel)
-  - [ ] Header with "RecoverAi" text/logo and overall call status
-  - [ ] Responsive: stacks vertically on narrow screens (not critical, but shouldn't break)
-  - [ ] Dark or light theme that looks professional (not default unstyled)
-  - [ ] Footer with WebSocket connection indicator (connected/disconnected dot)
+- **Requirements**: Requirement 4, Requirement 8
+- **Description**: Assemble the main dashboard page with two-column layout, header with logo, and connection status footer.
+- **Dependencies**: T17, T13
+- **Acceptance Criteria**:
+  - [ ] 18.1 Render full dashboard layout in frontend/src/app/page.tsx
+  - [ ] 18.2 Create two-column grid with left column at 35% and right column at 65%
+  - [ ] 18.3 Add header with RecoverAi text/logo and overall call status
+  - [ ] 18.4 Ensure layout stacks vertically on narrow screens without breaking
+  - [ ] 18.5 Apply professional dark or light theme (not default unstyled)
+  - [ ] 18.6 Add footer with WebSocket connection indicator dot
 
 ### Task T19: Error UI Components
-
-- **ID:** T19
-- **Description:** Build error handling UI: toast notifications for transient errors, banner for connection loss, alert for microphone denial.
-- **Dependencies:** T18
-- **Owner:** Frontend
-- **Estimated Complexity:** Low
-- **Acceptance Criteria:**
-  - [ ] shadcn/ui Toast configured and working
-  - [ ] Microphone denial shows inline Alert with instructions
-  - [ ] WebSocket disconnect shows top banner: "Connection lost. Reconnecting..."
-  - [ ] API errors show Toast notification
-  - [ ] All error states are recoverable (user can retry or start new call)
+- **Requirements**: Requirement 7
+- **Description**: Build error handling UI with toast notifications, connection loss banner, and microphone denial alert.
+- **Dependencies**: T18
+- **Acceptance Criteria**:
+  - [ ] 19.1 Configure shadcn/ui Toast and verify it works
+  - [ ] 19.2 Show inline Alert with instructions on microphone denial
+  - [ ] 19.3 Show top banner on WebSocket disconnect with reconnecting message
+  - [ ] 19.4 Show Toast notification on API errors
+  - [ ] 19.5 Verify all error states are recoverable via retry or new call
 
 ### Task T20: Final Demo Polish and Walkthrough
+- **Requirements**: Requirement 8
+- **Description**: End-to-end demo rehearsal fixing visual issues, timing problems, and UX friction for a flawless 3-minute demo.
+- **Dependencies**: T19, T16
+- **Acceptance Criteria**:
+  - [ ] 20.1 Complete full demo flow: Start Call, AI Greets, User Speaks, AI Responds, Transcript Streams, End Call, View History
+  - [ ] 20.2 Verify demo completes in under 3 minutes
+  - [ ] 20.3 Verify no console errors or warnings during happy path
+  - [ ] 20.4 Verify UI looks polished from 6 feet away
+  - [ ] 20.5 Verify AI responses are natural and contextually appropriate
+  - [ ] 20.6 Verify transcript streaming has visible real-time effect
+  - [ ] 20.7 Verify at least 3 conversation turns work reliably
+  - [ ] 20.8 Verify animations and transitions feel smooth
+  - [ ] 20.9 Create demo script document at docs/demo-script.md
 
-- **ID:** T20
-- **Description:** End-to-end demo rehearsal. Fix any visual issues, timing problems, or UX friction. Ensure the 3-minute demo flow works flawlessly.
-- **Dependencies:** T19, T16
-- **Owner:** Full Stack
-- **Estimated Complexity:** Medium
-- **Acceptance Criteria:**
-  - [ ] Full demo flow: Start Call → AI Greets → User Speaks → AI Responds → Transcript Streams → End Call → View History
-  - [ ] Demo completes in under 3 minutes
-  - [ ] No console errors or warnings during happy path
-  - [ ] UI looks polished from 6 feet away (presentation distance)
-  - [ ] AI responses are natural and contextually appropriate
-  - [ ] Transcript streaming has visible real-time effect (not all-at-once)
-  - [ ] At least 3 conversation turns work reliably
-  - [ ] Animations/transitions feel smooth (status changes, transcript scroll)
-  - [ ] Document the demo script in `docs/demo-script.md`
+## Notes
 
----
+### Parallel Execution Tracks
 
-## Task Summary
+- Track A (Backend): T2 → T4 → T5 → T6 → T15
+- Track B (Frontend): T1 → T8 → T9 → T11 → T12 → T13
+- Merge Point: T10 (requires both tracks), then T14 → T16 → T17 → T18 → T19 → T20
 
-| ID | Task | Phase | Owner | Complexity | Dependencies |
-|----|------|-------|-------|------------|--------------|
-| T1 | Initialize Next.js Frontend | 1 | Frontend | Low | — |
-| T2 | Initialize FastAPI Backend | 1 | Backend | Low | — |
-| T3 | Create Shared Types and Models | 1 | Full Stack | Low | T1, T2 |
-| T4 | OpenAI Realtime API Client | 2 | Backend/AI | High | T2 |
-| T5 | WebSocket Session Handler | 2 | Backend | High | T4, T3 |
-| T6 | Call Management REST Endpoints | 2 | Backend | Medium | T3, T2 |
-| T7 | Voice Agent System Prompt | 3 | AI | Low | T4 |
-| T8 | Browser Audio Capture | 3 | Frontend | High | T1, T5 |
-| T9 | Browser Audio Playback | 3 | Frontend | Medium | T8 |
-| T10 | E2E Voice Conversation Test | 3 | Full Stack | Medium | T7, T8, T9, T5 |
-| T11 | WebSocket Client Hook | 4 | Frontend | Medium | T5, T1 |
-| T12 | Call State Context & Reducer | 4 | Frontend | Medium | T3, T11 |
-| T13 | Transcript Panel Component | 4 | Frontend | Medium | T12 |
-| T14 | Call Management Hook | 5 | Frontend | High | T11, T12, T8, T9 |
-| T15 | Backend Transcript Storage | 5 | Backend | Low | T5, T6 |
-| T16 | Post-Call Transcript View | 5 | Frontend | Low | T13, T14 |
-| T17 | Call Panel Component | 6 | Frontend | Medium | T12, T14 |
-| T18 | Dashboard Layout | 6 | Frontend | Medium | T17, T13 |
-| T19 | Error UI Components | 6 | Frontend | Low | T18 |
-| T20 | Final Demo Polish | 6 | Full Stack | Medium | T19, T16 |
+### Day-by-Day Estimate
 
----
-
-## Parallel Execution Opportunities
-
-These tasks can be worked on simultaneously by different developers:
-
-**Parallel Track A (Backend):** T2 → T4 → T5 → T6 → T15
-**Parallel Track B (Frontend):** T1 → T8 → T9 → T11 → T12 → T13
-**Merge Point:** T10 (requires both tracks), then T14 → T16 → T17 → T18 → T19 → T20
-
-**Day-by-Day Estimate:**
 - Day 1: T1, T2, T3, T4, T7 (Project setup + OpenAI client)
 - Day 2: T5, T6, T8, T9 (WebSocket handler + Audio capture/playback)
 - Day 3: T10, T11, T12, T13 (Integration test + Transcript UI)

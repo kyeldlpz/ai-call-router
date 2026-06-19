@@ -1,137 +1,130 @@
-# Voice Intake MVP — Requirements
+# Requirements Document
 
-## Overview
+## Introduction
 
 The Voice Intake MVP is the foundational feature of RecoverAi. It establishes a real-time AI voice conversation system where a user clicks "Start Call," an AI agent greets and converses naturally, and the entire conversation is transcribed and displayed live on a dashboard.
 
 This is the minimum viable system: voice in, AI response out, transcript displayed. No intent detection, no scoring, no handoff summaries. Those are future specs.
 
-## Product Goals
+### Product Goals
 
 1. Demonstrate that an AI can conduct a natural voice conversation as a collections intake agent
 2. Prove real-time transcription can stream to a dashboard with sub-2-second latency
 3. Establish the technical foundation (WebSocket pipeline, OpenAI Realtime API integration) that all future features build upon
 4. Deliver a demo that runs reliably for 3 minutes without errors
 
-## User Stories
+## Glossary
 
-### US-1: Start a Voice Call
-As a demo operator, I want to click a single button to start an AI voice conversation, so that I can demonstrate the system without complex setup.
+- **OpenAI Realtime API**: WebSocket-based API for real-time voice-to-voice AI conversations
+- **PCM16**: Pulse-code modulation 16-bit audio format, required by OpenAI Realtime API
+- **VAD (Voice Activity Detection)**: Server-side detection of when a speaker starts/stops talking
+- **AudioWorklet**: Browser API for processing raw audio on a dedicated thread
+- **Transcript Delta**: A partial chunk of AI-generated transcript text, streamed word-by-word
+- **Call Session**: A single voice conversation from start to end, identified by a unique call_id
 
-### US-2: AI Greeting
-As a demo operator, I want the AI to immediately greet the caller in a professional collections tone, so that the conversation begins naturally without awkward silence.
+## Requirements
 
-### US-3: Natural Conversation
-As a demo operator, I want to speak naturally and have the AI respond contextually, so that the demo shows genuine conversational AI capability.
+### Requirement 1: Start a Voice Call
 
-### US-4: Live Transcript Display
-As a demo operator, I want to see the conversation transcribed word-by-word on screen as it happens, so that observers can follow the conversation visually.
+**User Story:** As a demo operator, I want to click a single button to start an AI voice conversation, so that I can demonstrate the system without complex setup.
 
-### US-5: End a Voice Call
-As a demo operator, I want to click a button to end the call cleanly, so that the conversation terminates gracefully.
+#### Acceptance Criteria
 
-### US-6: View Conversation History
-As a demo operator, I want to see the full transcript after the call ends, so that I can reference what was discussed.
+1. The system SHALL provide a "Start Call" button on the main dashboard that is visible and enabled when in idle state
+2. The system SHALL request microphone permissions from the browser when the call starts
+3. The system SHALL establish a WebSocket connection to the backend upon call start
+4. The system SHALL connect to the OpenAI Realtime API within 3 seconds of the user clicking Start Call
+5. The system SHALL display a "Connecting..." state with visual pulse animation while the connection is being established
+6. The system SHALL disable the Start Call button immediately after click to prevent duplicate calls
 
-## Functional Requirements
+### Requirement 2: AI Voice Greeting
 
-### FR-1: Call Initiation
-- FR-1.1: The system SHALL provide a "Start Call" button on the main dashboard
-- FR-1.2: The system SHALL request microphone permissions from the browser when the call starts
-- FR-1.3: The system SHALL establish a WebSocket connection to the backend upon call start
-- FR-1.4: The system SHALL connect to the OpenAI Realtime API within 3 seconds of the user clicking Start Call
-- FR-1.5: The system SHALL display a "Connecting..." state while the connection is being established
+**User Story:** As a demo operator, I want the AI to immediately greet the caller in a professional collections tone, so that the conversation begins naturally without awkward silence.
 
-### FR-2: AI Voice Conversation
-- FR-2.1: The system SHALL use the OpenAI Realtime API for voice-to-voice conversation
-- FR-2.2: The AI SHALL greet the caller within 2 seconds of connection being established
-- FR-2.3: The AI SHALL respond to user speech naturally, maintaining conversational context
-- FR-2.4: The AI SHALL use a professional, empathetic tone appropriate for collections intake
-- FR-2.5: The system SHALL stream audio responses back to the user's browser speakers
-- FR-2.6: The AI SHALL maintain conversation context for the duration of the call (no memory resets mid-call)
+#### Acceptance Criteria
 
-### FR-3: Live Transcription
-- FR-3.1: The system SHALL transcribe user speech in real-time using the OpenAI Realtime API transcript events
-- FR-3.2: The system SHALL transcribe AI responses in real-time
-- FR-3.3: The system SHALL display transcript updates within 2 seconds of speech
-- FR-3.4: The system SHALL clearly distinguish between caller speech and AI speech in the transcript
-- FR-3.5: The system SHALL display speaker labels ("Caller" and "AI Agent") for each transcript segment
-- FR-3.6: The system SHALL auto-scroll the transcript panel to show the latest message
+1. The AI SHALL greet the caller audibly within 2 seconds of WebSocket connection being established
+2. The AI SHALL use a professional, empathetic tone appropriate for collections intake
+3. The greeting SHALL be concise (1-2 sentences maximum)
+4. The system SHALL stream the greeting audio to the user's browser speakers
+5. The system SHALL display the greeting text in the transcript panel simultaneously with audio playback
 
-### FR-4: Call Termination
-- FR-4.1: The system SHALL provide an "End Call" button visible during an active call
-- FR-4.2: The system SHALL close the OpenAI Realtime API session when the call ends
-- FR-4.3: The system SHALL close the WebSocket connection cleanly when the call ends
-- FR-4.4: The system SHALL release the browser microphone when the call ends
-- FR-4.5: The system SHALL transition the UI to a "Call Complete" state showing the full transcript
+### Requirement 3: Natural AI Conversation
 
-### FR-5: Conversation Storage
-- FR-5.1: The system SHALL store the complete transcript in memory for the duration of the browser session
-- FR-5.2: The system SHALL associate each transcript message with a timestamp
-- FR-5.3: The system SHALL preserve the transcript after call end for review
+**User Story:** As a demo operator, I want to speak naturally and have the AI respond contextually, so that the demo shows genuine conversational AI capability.
 
-## Non-Functional Requirements
+#### Acceptance Criteria
 
-### NFR-1: Performance
-- NFR-1.1: Audio latency from speech to AI response SHALL be under 3 seconds
-- NFR-1.2: Transcript display latency SHALL be under 2 seconds from speech
-- NFR-1.3: The system SHALL maintain stable performance for calls up to 5 minutes in duration
+1. The system SHALL use the OpenAI Realtime API with server-side VAD for automatic turn detection
+2. The AI SHALL respond to user speech naturally within 3 seconds of the user finishing speaking
+3. The AI SHALL maintain conversation context for the duration of the call with no memory resets mid-call
+4. The AI SHALL keep responses concise at 2-3 sentences maximum per turn
+5. The AI SHALL NOT ask for sensitive information such as SSN or full credit card numbers
+6. The AI SHALL NOT make promises about payment plans, settlement percentages, or account balance reductions
+7. The system SHALL support at least 3 consecutive conversation turns without degradation
 
-### NFR-2: Reliability
-- NFR-2.1: The happy path demo SHALL complete without errors 9 out of 10 times
-- NFR-2.2: WebSocket disconnections SHALL be surfaced to the user with a clear error message
-- NFR-2.3: The system SHALL not crash if the microphone is denied — it SHALL show an error message
+### Requirement 4: Live Transcript Display
 
-### NFR-3: Usability
-- NFR-3.1: The interface SHALL be operable with a single click to start and a single click to stop
-- NFR-3.2: The transcript panel SHALL be readable from 6 feet away (demo/presentation distance)
-- NFR-3.3: Call status SHALL be visually obvious at all times (idle, connecting, active, ended)
+**User Story:** As a demo operator, I want to see the conversation transcribed word-by-word on screen as it happens, so that observers can follow the conversation visually.
 
-### NFR-4: Compatibility
-- NFR-4.1: The system SHALL work in Chrome 120+ (primary demo browser)
-- NFR-4.2: The system SHALL work on localhost without HTTPS (WebRTC/getUserMedia exception)
+#### Acceptance Criteria
 
-## Acceptance Criteria
+1. The system SHALL transcribe user speech in real-time using OpenAI Realtime API transcript events
+2. The system SHALL transcribe AI responses in real-time as streaming deltas
+3. The system SHALL display transcript updates within 2 seconds of speech occurring
+4. The system SHALL clearly distinguish between caller speech and AI speech with distinct visual styling and speaker labels
+5. The system SHALL display speaker labels "Caller" and "AI Agent" for each transcript segment
+6. The system SHALL auto-scroll the transcript panel to show the latest message
+7. AI messages SHALL display progressively as deltas arrive, creating a visible real-time streaming effect
+8. Each transcript message SHALL include a timestamp
 
-### AC-1: Complete Demo Flow
-- [ ] User clicks "Start Call" → connection establishes in under 3 seconds
-- [ ] AI greets the caller audibly within 2 seconds of connection
-- [ ] User speaks → AI responds naturally within 3 seconds
-- [ ] Transcript shows both sides of the conversation in real-time
-- [ ] User clicks "End Call" → call terminates cleanly
-- [ ] Full transcript remains visible after call ends
+### Requirement 5: End a Voice Call
 
-### AC-2: Transcript Accuracy
-- [ ] Speaker labels correctly identify AI vs Caller for every message
-- [ ] Timestamps are present on each transcript entry
-- [ ] Transcript auto-scrolls to latest message
-- [ ] No duplicate messages appear in the transcript
+**User Story:** As a demo operator, I want to click a button to end the call cleanly, so that the conversation terminates gracefully.
 
-### AC-3: Error Resilience
-- [ ] Microphone denial shows clear error message (not a crash)
-- [ ] Network interruption shows reconnection attempt or error banner
-- [ ] Call can be restarted after an error without page refresh
+#### Acceptance Criteria
 
-## Edge Cases
+1. The system SHALL provide an "End Call" button visible only during an active call state
+2. The system SHALL close the OpenAI Realtime API session when the call ends
+3. The system SHALL close the WebSocket connection cleanly when the call ends
+4. The system SHALL release the browser microphone when the call ends
+5. The system SHALL transition the UI to a "Call Complete" state showing the full transcript and final duration
 
-| # | Edge Case | Expected Behavior |
-|---|-----------|-------------------|
-| 1 | User denies microphone permission | Show error: "Microphone access required" with retry option |
-| 2 | OpenAI Realtime API connection fails | Show error: "Connection failed" with retry button |
-| 3 | WebSocket drops mid-call | Show banner: "Connection lost" and attempt reconnection |
-| 4 | User clicks Start Call twice rapidly | Ignore second click (button disabled during connection) |
-| 5 | User speaks before AI greeting completes | Queue user speech; AI processes after greeting |
-| 6 | Very long silence (30+ seconds) | AI prompts: "Are you still there?" |
-| 7 | Call exceeds 5 minutes | Allow to continue but do not guarantee stability beyond 5 min |
-| 8 | Browser tab loses focus during call | Call continues normally (no suspension) |
-| 9 | User refreshes page during call | Call is lost; transcript is cleared; show idle state |
+### Requirement 6: View Conversation History
 
-## Demo Success Criteria
+**User Story:** As a demo operator, I want to see the full transcript after the call ends, so that I can reference what was discussed.
 
-1. A non-technical observer can understand what is happening within 10 seconds of watching
-2. The AI sounds natural — not robotic, not scripted
-3. The transcript updates are visually impressive (real-time streaming effect)
-4. The call starts fast enough that there is no awkward waiting
-5. The end-to-end flow (start → converse → end) completes in under 2 minutes for a standard demo
-6. No visible errors, console warnings, or UI glitches during the happy path
-7. The UI looks polished — not a prototype wireframe
+#### Acceptance Criteria
+
+1. The system SHALL store the complete transcript in memory for the duration of the browser session
+2. The system SHALL associate each transcript message with a speaker label and timestamp
+3. The system SHALL preserve the full transcript after call end for review without data loss
+4. The system SHALL provide a "New Call" button after call completion to reset state and start fresh
+5. The system SHALL make the transcript available via REST API at GET /api/v1/calls/{call_id}
+
+### Requirement 7: Error Handling and Recovery
+
+**User Story:** As a demo operator, I want clear error feedback when something goes wrong, so that I can quickly recover and restart the demo.
+
+#### Acceptance Criteria
+
+1. The system SHALL NOT crash if the user denies microphone permission — it SHALL show an error message with retry instructions
+2. The system SHALL surface WebSocket disconnections to the user with a clear banner message
+3. The system SHALL attempt WebSocket reconnection 3 times with exponential backoff (1s, 2s, 4s) before showing a failure state
+4. The system SHALL allow a call to be restarted after an error without requiring a page refresh
+5. The system SHALL display transient errors as toast notifications that auto-dismiss after 5 seconds
+6. The system SHALL display persistent errors as inline Alert components with an action button
+
+### Requirement 8: Performance and Reliability
+
+**User Story:** As a demo operator, I want the system to perform reliably under demo conditions, so that the presentation goes smoothly.
+
+#### Acceptance Criteria
+
+1. Audio latency from speech to AI response SHALL be under 3 seconds
+2. Transcript display latency SHALL be under 2 seconds from speech
+3. The system SHALL maintain stable performance for calls up to 5 minutes in duration
+4. The happy path demo SHALL complete without errors 9 out of 10 times
+5. The interface SHALL be operable with a single click to start and a single click to stop
+6. Call status SHALL be visually obvious at all times through color-coded status badges (idle=gray, connecting=yellow, active=green, complete=blue, error=red)
+7. The system SHALL work in Chrome 120+ on localhost without HTTPS
