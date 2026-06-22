@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "Sprint Updater",
+  "description": "Keep tasks.md updated",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review completed work.\n\nUpdate:\n\n* tasks.md\n* progress status\n* blockers\n* implementation notes\n\nMark:\n\n* Completed\n* In Progress\n* Blocked\n\nGenerate sprint summary.\n\nGenerate next recommended task.\n\nEnsure documentation reflects implementation state.\n"
+  },
+  "workspaceFolderName": "ai-call-router",
+  "shortName": "sprint-updater"
+}

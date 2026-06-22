@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "Test Generator",
+  "description": "Automatically create tests",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "For every feature implemented:\n\nGenerate:\n\n* Unit tests\n* Integration tests\n* Edge case tests\n\nRequirements:\n\n* Happy path\n* Failure path\n* Retry path\n* Empty state\n* Loading state\n\nFollow testing-governance.md.\n"
+  },
+  "workspaceFolderName": "ai-call-router",
+  "shortName": "test-generator"
+}

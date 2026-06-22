@@ -2,53 +2,87 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRealtimeConnection } from "./use-realtime-connection";
-import { useAudioRecorder } from "./use-audio-recorder";
-import { useAudioPlayback } from "./use-audio-playback";
+import { useSpeechRecognition } from "./use-speech-recognition";
+import { useSpeechSynthesis } from "./use-speech-synthesis";
+import { useElevenLabsTTS } from "./use-elevenlabs-tts";
+import { useElevenLabsSTT } from "./use-elevenlabs-stt";
 import { useCallContext } from "@/context/call-context";
-import type { CallStatus, TranscriptMessage, WsMessage } from "@/types";
+import type { CallStatus, TranscriptMessage, WsMessage, TTSProvider, STTProvider } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000";
 
 interface VoiceConversationReturn {
-  // State
   status: CallStatus;
   transcript: TranscriptMessage[];
   duration: number;
   error: string | null;
+  speechError: string | null;
   isSpeaking: boolean;
-  estimatedCost: number;
-
-  // Actions
+  interimText: string;
+  isProcessing: boolean;
   startCall: () => Promise<void>;
   endCall: () => void;
   resetCall: () => void;
-
-  // Audio controls
   isMuted: boolean;
   toggleMute: () => void;
-
-  // Connection info
   isConnected: boolean;
   connectionState: string;
+  isSpeechSupported: boolean;
+  ttsProvider: TTSProvider;
+  sttProvider: STTProvider;
+  setTtsProvider: (p: TTSProvider) => void;
+  setSttProvider: (p: STTProvider) => void;
+  elevenlabsVoiceId: string;
+  setElevenlabsVoiceId: (id: string) => void;
 }
 
 export function useVoiceConversation(): VoiceConversationReturn {
   const { state, dispatch } = useCallContext();
   const [isMuted, setIsMuted] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [wsUrl, setWsUrl] = useState<string | null>(null);
-  const [estimatedCost, setEstimatedCost] = useState(0);
+  const [interimText, setInterimText] = useState("");
+  const [ttsProvider, setTtsProvider] = useState<TTSProvider>("browser");
+  const [sttProvider, setSttProvider] = useState<STTProvider>("browser");
+  const [elevenlabsVoiceId, setElevenlabsVoiceId] = useState("onwK4e9ZLuTAKqWW03F9");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const audioChunksRef = useRef(0);
   const isMutedRef = useRef(isMuted);
+  const ttsProviderRef = useRef(ttsProvider);
   isMutedRef.current = isMuted;
+  ttsProviderRef.current = ttsProvider;
 
-  // Audio playback
-  const { playChunk, stop: stopPlayback, initContext: initAudioContext } = useAudioPlayback();
+  // --- TTS providers ---
+  const browserTTS = useSpeechSynthesis();
+  const elevenLabsTTS = useElevenLabsTTS(elevenlabsVoiceId);
 
-  // Handle incoming WebSocket messages
+  // Use a ref-based speak function so handleWsMessage doesn't re-create on provider change
+  const speakRef = useRef<(text: string) => void>((text: string) => {
+    if (ttsProviderRef.current === "elevenlabs") {
+      elevenLabsTTS.speak(text);
+    } else {
+      browserTTS.speak(text);
+    }
+  });
+  speakRef.current = (text: string) => {
+    if (ttsProviderRef.current === "elevenlabs") {
+      elevenLabsTTS.speak(text);
+    } else {
+      browserTTS.speak(text);
+    }
+  };
+
+  const cancelAllTTS = useCallback(() => {
+    browserTTS.cancel();
+    elevenLabsTTS.cancel();
+  }, [browserTTS, elevenLabsTTS]);
+
+  const isSpeaking = ttsProvider === "elevenlabs" ? elevenLabsTTS.isSpeaking : browserTTS.isSpeaking;
+  const isSpeakingRef = useRef(isSpeaking);
+  isSpeakingRef.current = isSpeaking;
+
+  // --- Handle incoming WebSocket messages ---
   const handleWsMessage = useCallback(
     (message: WsMessage) => {
       switch (message.type) {
@@ -56,48 +90,25 @@ export function useVoiceConversation(): VoiceConversationReturn {
           const data = message.data as { status: string };
           if (data.status === "active") {
             dispatch({ type: "CALL_CONNECTED" });
-            setIsSpeaking(false);
           }
-          break;
-        }
-
-        case "transcript_delta": {
-          const data = message.data as { speaker: "ai"; text: string };
-          dispatch({ type: "TRANSCRIPT_DELTA", speaker: "ai", text: data.text });
-          setIsSpeaking(false);
-          // Estimate cost: ~$0.06 per 1K output tokens, roughly 4 chars per token
-          setEstimatedCost((prev) => prev + (data.text.length / 4) * 0.00006);
           break;
         }
 
         case "transcript_complete": {
-          const data = message.data as {
-            id?: string;
-            speaker: "ai" | "caller";
-            text: string;
-            timestamp?: string;
-          };
+          const data = message.data as { speaker: "ai" | "caller"; text: string };
           const msg: TranscriptMessage = {
-            id: data.id || `msg_${Date.now()}`,
+            id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             speaker: data.speaker,
             text: data.text,
-            timestamp: data.timestamp || new Date().toISOString(),
+            timestamp: new Date().toISOString(),
             isStreaming: false,
           };
           dispatch({ type: "TRANSCRIPT_ADD", message: msg });
-          if (data.speaker === "caller") {
-            setIsSpeaking(false);
-            // Estimate cost: ~$0.04 per 1K input tokens
-            setEstimatedCost((prev) => prev + (data.text.length / 4) * 0.00004);
-          }
-          break;
-        }
 
-        case "response_done": {
-          // Finalize the current streaming AI message
-          dispatch({ type: "CALL_CONNECTED" }); // no-op if already active, just ensures state
-          // Mark streaming message as done by dispatching a special delta with empty text won't work
-          // Instead, set streaming to false on last message
+          if (data.speaker === "ai") {
+            setIsProcessing(false);
+            speakRef.current(data.text);
+          }
           break;
         }
 
@@ -114,50 +125,55 @@ export function useVoiceConversation(): VoiceConversationReturn {
     [dispatch]
   );
 
-  // Handle audio delta (routed separately for performance)
-  const handleAudioDelta = useCallback(
-    (base64Audio: string) => {
-      playChunk(base64Audio);
-      // Estimate audio output cost: ~$0.10 per minute of audio, roughly 24000 samples/sec
-      audioChunksRef.current += 1;
-      // Every 6 chunks ≈ 1 second of audio ≈ $0.0017
-      if (audioChunksRef.current % 6 === 0) {
-        setEstimatedCost((prev) => prev + 0.0017);
-      }
-    },
-    [playChunk]
-  );
-
-  // WebSocket connection
+  // --- WebSocket ---
   const { isConnected, connectionState, send, disconnect } = useRealtimeConnection({
     url: wsUrl,
     onMessage: handleWsMessage,
-    onAudioDelta: handleAudioDelta,
   });
 
-  // Audio recorder — sends chunks over WebSocket
-  const handleAudioChunk = useCallback(
-    (base64Pcm: string) => {
-      if (!isMutedRef.current) {
-        send({ type: "audio_input", data: { audio: base64Pcm } });
-        setIsSpeaking(true);
-      }
+  // --- STT: speech result handlers ---
+  const handleSpeechResult = useCallback(
+    (text: string) => {
+      if (isMutedRef.current) return;
+      // Suppress echo — ignore mic input while AI is speaking through speakers
+      if (isSpeakingRef.current) return;
+      setInterimText("");
+      setIsProcessing(true);
+      send({ type: "text_input", data: { text } });
     },
     [send]
   );
 
-  const { isRecording, permissionError, startRecording, stopRecording } = useAudioRecorder({
-    onAudioChunk: handleAudioChunk,
+  const handleInterimResult = useCallback((text: string) => {
+    if (isMutedRef.current) return;
+    // Suppress echo — ignore interim results while AI is speaking
+    if (isSpeakingRef.current) return;
+    setInterimText(text);
+  }, []);
+
+  // --- STT providers ---
+  const browserSTT = useSpeechRecognition({
+    onResult: handleSpeechResult,
+    onInterim: handleInterimResult,
   });
 
-  // Duration timer
+  const elevenLabsSTT = useElevenLabsSTT({
+    onResult: handleSpeechResult,
+    onInterim: handleInterimResult,
+    language: "tl",
+  });
+
+  const activeSTT = sttProvider === "elevenlabs" ? elevenLabsSTT : browserSTT;
+  const speechError = activeSTT.error;
+  const isSpeechSupported = activeSTT.isSupported;
+
+  // --- Duration timer ---
   useEffect(() => {
     if (state.status === "active") {
       durationIntervalRef.current = setInterval(() => {
         dispatch({ type: "DURATION_TICK" });
       }, 1000);
     }
-
     return () => {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
@@ -166,20 +182,38 @@ export function useVoiceConversation(): VoiceConversationReturn {
     };
   }, [state.status, dispatch]);
 
-  // Surface permission errors to state
+  // Surface speech recognition errors (non-fatal for mic permission)
   useEffect(() => {
-    if (permissionError) {
-      dispatch({ type: "CALL_ERROR", error: permissionError });
+    if (speechError) {
+      if (speechError.includes("not-allowed")) return;
+      dispatch({ type: "CALL_ERROR", error: speechError });
     }
-  }, [permissionError, dispatch]);
+  }, [speechError, dispatch]);
+
+  // Reset processing state on connection failure or disconnection
+  useEffect(() => {
+    if (
+      isProcessing &&
+      (connectionState === "failed" || connectionState === "disconnected")
+    ) {
+      setIsProcessing(false);
+    }
+  }, [connectionState, isProcessing]);
 
   // --- Actions ---
-
   const startCall = useCallback(async () => {
     dispatch({ type: "CALL_INIT", callId: "" });
 
     try {
-      // 1. Create call via REST
+      // Request mic permission
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+      } catch {
+        // Continue without mic
+      }
+
+      // Create call via REST
       const response = await fetch(`${API_BASE}/api/v1/calls`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,7 +221,6 @@ export function useVoiceConversation(): VoiceConversationReturn {
       });
 
       const result = await response.json();
-
       if (!result.success || !result.data) {
         dispatch({ type: "CALL_ERROR", error: result.error || "Failed to create call" });
         return;
@@ -196,50 +229,37 @@ export function useVoiceConversation(): VoiceConversationReturn {
       const callId = result.data.callId || result.data.call_id;
       dispatch({ type: "CALL_INIT", callId });
 
-      // 2. Initialize audio context (must be from user gesture)
-      initAudioContext();
+      // Start STT
+      activeSTT.startListening();
 
-      // 3. Start microphone capture
-      await startRecording();
-
-      // 4. Connect WebSocket (triggers connection, which triggers OpenAI session on backend)
+      // Connect WebSocket
       setWsUrl(`${WS_BASE}/ws/v1/call/${callId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to start call";
       dispatch({ type: "CALL_ERROR", error: message });
     }
-  }, [dispatch, initAudioContext, startRecording]);
+  }, [dispatch, activeSTT]);
 
   const endCall = useCallback(() => {
     dispatch({ type: "CALL_ENDING" });
-
-    // Signal backend to end
     send({ type: "call_end", data: {} });
-
-    // Stop audio
-    stopRecording();
-    stopPlayback();
-
-    // Disconnect WebSocket
+    activeSTT.stopListening();
+    cancelAllTTS();
     setWsUrl(null);
     disconnect();
-
-    // Finalize state
     dispatch({ type: "CALL_COMPLETE" });
-    setIsSpeaking(false);
-  }, [dispatch, send, stopRecording, stopPlayback, disconnect]);
+    setInterimText("");
+  }, [dispatch, send, activeSTT, cancelAllTTS, disconnect]);
 
   const resetCall = useCallback(() => {
-    stopRecording();
-    stopPlayback();
+    activeSTT.stopListening();
+    cancelAllTTS();
     setWsUrl(null);
     disconnect();
     setIsMuted(false);
-    setIsSpeaking(false);
-    setEstimatedCost(0);
-    audioChunksRef.current = 0;
+    setInterimText("");
     dispatch({ type: "CALL_RESET" });
-  }, [dispatch, stopRecording, stopPlayback, disconnect]);
+  }, [dispatch, activeSTT, cancelAllTTS, disconnect]);
 
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
@@ -250,8 +270,10 @@ export function useVoiceConversation(): VoiceConversationReturn {
     transcript: state.transcript,
     duration: state.duration,
     error: state.error,
+    speechError,
     isSpeaking,
-    estimatedCost,
+    interimText,
+    isProcessing,
     startCall,
     endCall,
     resetCall,
@@ -259,5 +281,12 @@ export function useVoiceConversation(): VoiceConversationReturn {
     toggleMute,
     isConnected,
     connectionState,
+    isSpeechSupported,
+    ttsProvider,
+    sttProvider,
+    setTtsProvider,
+    setSttProvider,
+    elevenlabsVoiceId,
+    setElevenlabsVoiceId,
   };
 }

@@ -69,3 +69,7 @@ export type CallAction =
   | { type: "CALL_ERROR"; error: string }
   | { type: "CALL_RESET" }
   | { type: "DURATION_TICK" };
+
+// Speech provider types
+export type TTSProvider = "browser" | "elevenlabs";
+export type STTProvider = "browser" | "elevenlabs";

@@ -76,15 +76,10 @@ export function useRealtimeConnection({
         return;
       }
 
-      // Attempt reconnection
-      if (retriesRef.current < MAX_RETRIES) {
-        const delay = RETRY_DELAYS_MS[retriesRef.current] ?? 4000;
-        retriesRef.current += 1;
-        setConnectionState("reconnecting");
-        setTimeout(() => connect(wsUrl), delay);
-      } else {
-        setConnectionState("failed");
-      }
+      // Don't attempt reconnection — the backend blocks duplicate sessions
+      // for the same call_id, so reconnecting would just get rejected.
+      // Instead, show the disconnected state so the user can start a new call.
+      setConnectionState("failed");
     };
 
     ws.onerror = () => {

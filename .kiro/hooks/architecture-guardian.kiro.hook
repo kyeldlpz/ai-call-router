@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "Architecture Guardian",
+  "description": "Prevent architectural drift",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the proposed implementation before coding.\n\nVerify:\n\n* Follows structure.md\n* Follows tech.md\n* Follows product.md\n* No duplicate logic\n* Proper separation of concerns\n* No business logic in UI components\n* Reusable services are extracted\n* Types are centralized\n* Hook responsibilities are clear\n\nIf violations exist:\n\n1. Explain the issue.\n2. Suggest the fix.\n3. Block implementation until corrected.\n"
+  }
+}

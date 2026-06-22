@@ -128,3 +128,34 @@
     @apply font-sans;
   }
 }
+
+/* iPhone Call UI — Custom Animations */
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes avatar-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px 8px rgba(59, 130, 246, 0.5);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-avatar-glow {
+  animation: avatar-glow 2s ease-in-out infinite;
+}
