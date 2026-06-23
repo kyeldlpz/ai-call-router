@@ -13,9 +13,11 @@ interface MissionControlPanelProps {
   transcriptLength: number;
   isMuted: boolean;
   isConnected: boolean;
+  isListening: boolean;
   isCallActive: boolean;
   isPlayingCue: boolean;
   interimText: string | null;
+  speechError: string | null;
   showHandoff: boolean;
   agentConfig: AgentConfig;
   isAgentCustomized: boolean;
@@ -62,9 +64,11 @@ export function MissionControlPanel({
   transcriptLength,
   isMuted,
   isConnected,
+  isListening,
   isCallActive,
   isPlayingCue,
   interimText,
+  speechError,
   showHandoff,
   agentConfig,
   isAgentCustomized,
@@ -116,7 +120,15 @@ export function MissionControlPanel({
             <div className="flex items-center justify-between">
               <dt className="text-xs text-muted-foreground">Microphone</dt>
               <dd className="text-sm">
-                {isMuted ? "Muted" : status === "active" ? "Active" : "—"}
+                {isMuted
+                  ? "Muted"
+                  : status === "active"
+                    ? isListening
+                      ? "Listening"
+                      : speechError
+                        ? "Error"
+                        : "Starting…"
+                    : "—"}
               </dd>
             </div>
             <div className="flex items-center justify-between">

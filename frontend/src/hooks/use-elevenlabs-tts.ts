@@ -28,7 +28,6 @@ export function useElevenLabsTTS(voiceId?: string): UseElevenLabsTTSReturn {
       abortControllerRef.current.abort();
     }
 
-    setIsSpeaking(true);
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
@@ -53,6 +52,8 @@ export function useElevenLabsTTS(voiceId?: string): UseElevenLabsTTSReturn {
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audioRef.current = audio;
+
+        audio.onplay = () => setIsSpeaking(true);
 
         audio.onended = () => {
           setIsSpeaking(false);

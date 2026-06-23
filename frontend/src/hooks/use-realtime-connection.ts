@@ -28,6 +28,7 @@ export function useRealtimeConnection({
 }: UseRealtimeConnectionOptions): RealtimeConnectionReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const wsRef = useRef<WebSocket | null>(null);
+  const pendingOutboundRef = useRef<object[]>([]);
   const retriesRef = useRef(0);
   const intentionalCloseRef = useRef(false);
   const onMessageRef = useRef(onMessage);
@@ -49,6 +50,10 @@ export function useRealtimeConnection({
     ws.onopen = () => {
       setConnectionState("connected");
       retriesRef.current = 0;
+      while (pendingOutboundRef.current.length > 0 && ws.readyState === WebSocket.OPEN) {
+        const message = pendingOutboundRef.current.shift()!;
+        ws.send(JSON.stringify(message));
+      }
     };
 
     ws.onmessage = (event: MessageEvent) => {
@@ -90,6 +95,7 @@ export function useRealtimeConnection({
   const disconnect = useCallback(() => {
     intentionalCloseRef.current = true;
     retriesRef.current = 0;
+    pendingOutboundRef.current = [];
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -100,7 +106,9 @@ export function useRealtimeConnection({
   const send = useCallback((message: object) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(message));
+      return;
     }
+    pendingOutboundRef.current.push(message);
   }, []);
 
   // Connect when url changes, disconnect on null

@@ -47,6 +47,13 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       utterance.onerror = () => setIsSpeaking(false);
 
       window.speechSynthesis.speak(utterance);
+
+      // Chrome can miss onend; clear stuck speaking state if synthesis stops
+      window.setTimeout(() => {
+        if (!window.speechSynthesis.speaking) {
+          setIsSpeaking(false);
+        }
+      }, Math.max(text.length * 80, 3000));
     },
     [isSupported]
   );

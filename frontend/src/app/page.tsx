@@ -21,6 +21,7 @@ export default function CallPage() {
     interimText,
     isProcessing,
     isSpeechSupported,
+    isListening,
     startCall,
     endCall,
     resetCall,
@@ -120,9 +121,11 @@ export default function CallPage() {
               transcriptLength={transcript.length}
               isMuted={isMuted}
               isConnected={isConnected}
+              isListening={isListening}
               isCallActive={isCallActive}
               isPlayingCue={isPlayingCue}
               interimText={interimText}
+              speechError={speechError}
               showHandoff={status === "complete"}
               agentConfig={agentConfig}
               isAgentCustomized={isCustomized}

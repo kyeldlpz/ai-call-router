@@ -29,6 +29,7 @@ interface VoiceConversationReturn {
   isConnected: boolean;
   connectionState: string;
   isSpeechSupported: boolean;
+  isListening: boolean;
   ttsProvider: TTSProvider;
   sttProvider: STTProvider;
   setTtsProvider: (p: TTSProvider) => void;
@@ -50,6 +51,8 @@ export function useVoiceConversation(): VoiceConversationReturn {
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMutedRef = useRef(isMuted);
   const ttsProviderRef = useRef(ttsProvider);
+  const sttStartedForCallRef = useRef(false);
+  const pendingSpeechRef = useRef<string[]>([]);
   isMutedRef.current = isMuted;
   ttsProviderRef.current = ttsProvider;
 
@@ -132,16 +135,26 @@ export function useVoiceConversation(): VoiceConversationReturn {
   });
 
   // --- STT: speech result handlers ---
-  const handleSpeechResult = useCallback(
+  const sendSpeechInput = useCallback(
     (text: string) => {
-      if (isMutedRef.current) return;
-      // Suppress echo — ignore mic input while AI is speaking through speakers
-      if (isSpeakingRef.current) return;
       setInterimText("");
       setIsProcessing(true);
       send({ type: "text_input", data: { text } });
     },
     [send]
+  );
+
+  const handleSpeechResult = useCallback(
+    (text: string) => {
+      if (isMutedRef.current) return;
+      // Queue speech during TTS playback to avoid echo, then flush when listening resumes
+      if (isSpeakingRef.current) {
+        pendingSpeechRef.current.push(text);
+        return;
+      }
+      sendSpeechInput(text);
+    },
+    [sendSpeechInput]
   );
 
   const handleInterimResult = useCallback((text: string) => {
@@ -166,6 +179,42 @@ export function useVoiceConversation(): VoiceConversationReturn {
   const activeSTT = sttProvider === "elevenlabs" ? elevenLabsSTT : browserSTT;
   const speechError = activeSTT.error;
   const isSpeechSupported = activeSTT.isSupported;
+  const isListening = activeSTT.isListening;
+  const startListeningRef = useRef(activeSTT.startListening);
+  startListeningRef.current = activeSTT.startListening;
+
+  // Start STT only after the call WebSocket is connected
+  useEffect(() => {
+    if (!wsUrl || !isConnected || sttStartedForCallRef.current) return;
+    sttStartedForCallRef.current = true;
+    void startListeningRef.current();
+  }, [wsUrl, isConnected]);
+
+  // Browser TTS aborts SpeechRecognition — restart mic after AI finishes speaking
+  useEffect(() => {
+    if (state.status !== "active" || !wsUrl || !isConnected || isSpeaking || isMuted) {
+      return;
+    }
+    if (isListening) return;
+
+    const timer = window.setTimeout(() => {
+      if (state.status === "active" && !isSpeaking && !isMuted) {
+        void startListeningRef.current();
+      }
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [state.status, wsUrl, isConnected, isSpeaking, isMuted, isListening]);
+
+  // Flush caller speech queued during AI playback
+  useEffect(() => {
+    if (isSpeaking || isMuted || pendingSpeechRef.current.length === 0) return;
+    const queued = [...pendingSpeechRef.current];
+    pendingSpeechRef.current = [];
+    for (const text of queued) {
+      sendSpeechInput(text);
+    }
+  }, [isSpeaking, isMuted, sendSpeechInput]);
 
   // --- Duration timer ---
   useEffect(() => {
@@ -182,14 +231,6 @@ export function useVoiceConversation(): VoiceConversationReturn {
     };
   }, [state.status, dispatch]);
 
-  // Surface speech recognition errors (non-fatal for mic permission)
-  useEffect(() => {
-    if (speechError) {
-      if (speechError.includes("not-allowed")) return;
-      dispatch({ type: "CALL_ERROR", error: speechError });
-    }
-  }, [speechError, dispatch]);
-
   // Reset processing state on connection failure or disconnection
   useEffect(() => {
     if (
@@ -203,6 +244,8 @@ export function useVoiceConversation(): VoiceConversationReturn {
   // --- Actions ---
   const startCall = useCallback(async () => {
     dispatch({ type: "CALL_INIT", callId: "" });
+    sttStartedForCallRef.current = false;
+    pendingSpeechRef.current = [];
 
     try {
       // Request mic permission
@@ -229,20 +272,19 @@ export function useVoiceConversation(): VoiceConversationReturn {
       const callId = result.data.callId || result.data.call_id;
       dispatch({ type: "CALL_INIT", callId });
 
-      // Start STT
-      activeSTT.startListening();
-
-      // Connect WebSocket
+      // Connect WebSocket first; STT starts in useEffect once connected
       setWsUrl(`${WS_BASE}/ws/v1/call/${callId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to start call";
       dispatch({ type: "CALL_ERROR", error: message });
     }
-  }, [dispatch, activeSTT]);
+  }, [dispatch]);
 
   const endCall = useCallback(() => {
     dispatch({ type: "CALL_ENDING" });
     send({ type: "call_end", data: {} });
+    sttStartedForCallRef.current = false;
+    pendingSpeechRef.current = [];
     activeSTT.stopListening();
     cancelAllTTS();
     setWsUrl(null);
@@ -252,6 +294,8 @@ export function useVoiceConversation(): VoiceConversationReturn {
   }, [dispatch, send, activeSTT, cancelAllTTS, disconnect]);
 
   const resetCall = useCallback(() => {
+    sttStartedForCallRef.current = false;
+    pendingSpeechRef.current = [];
     activeSTT.stopListening();
     cancelAllTTS();
     setWsUrl(null);
@@ -282,6 +326,7 @@ export function useVoiceConversation(): VoiceConversationReturn {
     isConnected,
     connectionState,
     isSpeechSupported,
+    isListening,
     ttsProvider,
     sttProvider,
     setTtsProvider,
