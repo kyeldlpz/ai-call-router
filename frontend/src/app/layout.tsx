@@ -18,6 +18,10 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "RecoverAi — Revenue Recovery Command Center",
   description: "AI-powered voice intake and live transcription for collections",
+  icons: {
+    icon: "/logo/favicon.png",
+    apple: "/logo/favicon.png",
+  },
 };
 
 export default function RootLayout({

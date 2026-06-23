@@ -1,6 +1,7 @@
 "use client";
 
 import { CallPanel } from "@/components/call/call-panel";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { MissionControlPanel } from "@/components/dashboard/mission-control-panel";
 import { TranscriptPanel } from "@/components/transcript/transcript-panel";
 import { useAgentConfig } from "@/hooks/use-agent-config";
@@ -57,17 +58,20 @@ export default function CallPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden deck-shell">
       <header className="border-b border-border px-6 py-3.5 flex items-center justify-between bg-background-elevated">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-baseline gap-4">
-            <h1 className="text-xl font-bold uppercase tracking-wide">
-              <span className="text-foreground">Recover</span>
-              <span className="text-primary">Ai</span>
-            </h1>
-            <span className="label-caps hidden sm:inline">
-              Revenue Recovery Command Center
-            </span>
+        <div className="flex items-center gap-3">
+          <BrandLogo size="header" priority />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-baseline gap-4">
+              <h1 className="text-xl font-bold uppercase tracking-wide">
+                <span className="text-foreground">Recover</span>
+                <span className="text-primary">Ai</span>
+              </h1>
+              <span className="label-caps hidden sm:inline">
+                Revenue Recovery Command Center
+              </span>
+            </div>
+            <div className="brand-underline" aria-hidden="true" />
           </div>
-          <div className="brand-underline" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-2">
           <span

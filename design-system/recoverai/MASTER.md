@@ -69,6 +69,15 @@
 
 - `.brand-underline` — 40px × 3px cyan bar under wordmark
 
+### Brand mark (wolf mascot)
+
+- **Asset:** `/logo/whitewolf-headset.png` (favicon: `/logo/favicon.png`)
+- **Component:** `BrandLogo` with `size="header"` or `size="avatar"`
+- **Treatment:** Transparent PNG, trimmed with no white matte fringe; render directly on dark surfaces
+- **Delivery:** `next/image` with `unoptimized` so alpha is preserved (avoid `/_next/image` flattening)
+- **Allowed placements:** Header lockup, browser favicon, iPhone call avatar
+- **Do not:** Replace the Recover/**Ai** text wordmark; use as full-panel decoration or background watermark
+
 ---
 
 ## Anti-Patterns
