@@ -29,11 +29,11 @@ function StatusBadge({ status }: { status: CallStatus }) {
       className={cn(
         "text-[11px] font-medium px-2 py-0.5 rounded capitalize tabular-nums",
         status === "active" &&
-          "bg-intent-positive/10 text-intent-positive border border-intent-positive/25",
+          "bg-primary/10 text-primary border border-primary/30",
         status === "error" &&
           "bg-destructive/10 text-red-400 border border-destructive/25",
         status === "connecting" &&
-          "bg-primary/10 text-primary border border-primary/25",
+          "bg-brand-blue/10 text-brand-blue border border-brand-blue/30",
         status !== "active" &&
           status !== "error" &&
           status !== "connecting" &&
@@ -65,9 +65,9 @@ export function MissionControlPanel({
   const durationLabel = `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`;
 
   return (
-    <Card className="panel-surface border-0 ring-0 h-full flex flex-col">
+    <Card className="panel-surface panel-rail-purple border-0 ring-0 h-full flex flex-col">
       <CardHeader className="pb-4 border-b border-border">
-        <CardTitle className="text-sm font-semibold tracking-tight">
+        <CardTitle className="text-sm font-semibold tracking-tight uppercase">
           Mission Control
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
@@ -105,7 +105,7 @@ export function MissionControlPanel({
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full",
-                    isConnected ? "bg-intent-positive" : "bg-score-low"
+                    isConnected ? "bg-primary" : "bg-score-low"
                   )}
                 />
                 {isConnected ? "Online" : "Offline"}
@@ -130,10 +130,10 @@ export function MissionControlPanel({
 
         <section className="pt-2 border-t border-border">
           <p className="label-caps mb-3">Intelligence</p>
-          <div className="space-y-4">
-            <div>
+          <div className="space-y-3">
+            <div className="panel-rail-blue pl-3 py-2">
               <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5" aria-hidden="true" />
+                <Target className="w-3.5 h-3.5 text-brand-blue" aria-hidden="true" />
                 Caller intent
               </p>
               {isCallActive ? (
@@ -143,9 +143,9 @@ export function MissionControlPanel({
               )}
             </div>
 
-            <div>
+            <div className="panel-rail-purple pl-3 py-2">
               <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
+                <BarChart3 className="w-3.5 h-3.5 text-brand-purple" aria-hidden="true" />
                 Opportunity score
               </p>
               {isCallActive ? (
@@ -160,13 +160,13 @@ export function MissionControlPanel({
               )}
             </div>
 
-            <div>
+            <div className="panel-rail-cyan pl-3 py-2">
               <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+                <FileText className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                 Agent handoff
               </p>
               {showHandoff ? (
-                <div className="rounded-md border border-border bg-muted/40 p-3">
+                <div className="rounded border border-border bg-muted/40 p-3">
                   <p className="text-sm text-foreground/90 leading-relaxed">
                     {transcriptLength} exchanges recorded. Briefing ready for review.
                   </p>

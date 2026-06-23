@@ -13,7 +13,10 @@ interface IPhoneCallControlsProps {
 }
 
 const controlButtonBase =
-  "rounded-full flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50";
+  "rounded-full flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none";
+
+const callCtaClasses =
+  "call-cta w-16 h-16 min-h-11 min-w-11";
 
 export function IPhoneCallControls({
   status,
@@ -28,10 +31,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onStart}
-          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
+          className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="Start call"
         >
-          <Phone className="w-7 h-7 text-primary-foreground" />
+          <Phone className="w-7 h-7 text-current" />
         </button>
         <span className="text-xs text-white/70">call</span>
       </div>
@@ -122,10 +125,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onReset}
-          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
+          className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="New call"
         >
-          <Phone className="w-7 h-7 text-primary-foreground" />
+          <Phone className="w-7 h-7 text-current" />
         </button>
         <span className="text-xs text-white/70">new call</span>
       </div>
@@ -137,10 +140,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onReset}
-          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
+          className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="Retry call"
         >
-          <Phone className="w-7 h-7 text-primary-foreground" />
+          <Phone className="w-7 h-7 text-current" />
         </button>
         <span className="text-xs text-white/70">retry</span>
       </div>

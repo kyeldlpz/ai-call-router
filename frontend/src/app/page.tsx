@@ -42,19 +42,25 @@ export default function CallPage() {
   const isCallActive = status === "active" || status === "connecting";
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden terminal-shell">
-      <header className="border-b border-border px-6 py-3.5 flex items-center justify-between bg-card/50">
-        <div className="flex items-baseline gap-4">
-          <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-foreground">
-            RecoverAi
-          </h1>
-          <span className="label-caps hidden sm:inline">Revenue Recovery Command Center</span>
+    <div className="flex flex-col h-screen overflow-hidden deck-shell">
+      <header className="border-b border-border px-6 py-3.5 flex items-center justify-between bg-background-elevated">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline gap-4">
+            <h1 className="text-xl font-bold uppercase tracking-wide">
+              <span className="text-foreground">Recover</span>
+              <span className="text-primary">Ai</span>
+            </h1>
+            <span className="label-caps hidden sm:inline">
+              Revenue Recovery Command Center
+            </span>
+          </div>
+          <div className="brand-underline" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-2">
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full transition-colors duration-200",
-              isConnected ? "bg-intent-positive" : "bg-score-low"
+              isConnected ? "bg-primary shadow-[0_0_6px_rgba(0,210,255,0.6)]" : "bg-score-low"
             )}
           />
           <span className="text-xs text-muted-foreground tabular-nums">
@@ -112,12 +118,10 @@ export default function CallPage() {
         </div>
       </main>
 
-      <footer className="border-t border-border px-6 py-2.5 flex items-center justify-between bg-card/50">
-        <span className="text-[11px] text-muted-foreground font-mono tabular-nums">
-          WS {isConnected ? "connected" : "disconnected"}
-        </span>
-        <span className="text-[11px] text-muted-foreground">
-          RecoverAi · Voice Intake
+      <footer className="border-t border-border px-6 py-2.5 flex items-center justify-between bg-background-elevated">
+        <span className="label-caps">Voice Intake</span>
+        <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+          Git Push Force
         </span>
       </footer>
     </div>

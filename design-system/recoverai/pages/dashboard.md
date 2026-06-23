@@ -1,46 +1,62 @@
 # Dashboard Page Overrides
 
 > **PROJECT:** RecoverAi
-> **Generated:** 2026-06-23 22:33:43
-> **Page Type:** Dashboard / Data View
+> **Source:** Google Slides deck alignment
+> **Page Type:** Operations dashboard / voice intake
 
-> ⚠️ **IMPORTANT:** Rules in this file **override** the Master file (`design-system/MASTER.md`).
-> Only deviations from the Master are documented here. For all other rules, refer to the Master.
-
----
-
-## Page-Specific Rules
-
-### Layout Overrides
-
-- **Max Width:** 1200px (standard)
-- **Layout:** Full-width sections, centered content
-
-### Spacing Overrides
-
-- No overrides — use Master spacing
-
-### Typography Overrides
-
-- No overrides — use Master typography
-
-### Color Overrides
-
-- No overrides — use Master colors
-
-### Component Overrides
-
-- Avoid: Error without recovery path
+> Rules here **override** `design-system/recoverai/MASTER.md`.
 
 ---
 
-## Page-Specific Components
+## Layout
 
-- No unique components for this page
+- **Grid:** 3-6-3 (phone | transcript hero | mission control)
+- **Max width:** 1600px centered
+- **Mobile order:** transcript first, phone second, mission control third
 
 ---
 
-## Recommendations
+## Page-specific color rails
 
-- Effects: Number animations (count-up), trend direction indicators, percentage change animations, profit/loss color transitions
-- Feedback: Provide clear next steps
+| Panel | Rail class |
+|-------|------------|
+| Transcript (hero) | `.panel-rail-blue` |
+| Mission Control | `.panel-rail-purple` |
+| Intent block | `.panel-rail-blue` |
+| Opportunity score | `.panel-rail-purple` |
+| Agent handoff | `.panel-rail-cyan` |
+| AI transcript bubble | `.panel-rail-purple` |
+
+---
+
+## Header / Footer
+
+- **Header:** Recover (white) + Ai (cyan), cyan underline, uppercase subtitle
+- **Footer:** "Voice Intake" left, "Git Push Force" right (matches deck)
+
+---
+
+## Typography overrides
+
+- No serif on this page
+- Panel titles: uppercase, semibold
+
+---
+
+## Status colors
+
+| State | Color |
+|-------|-------|
+| Active / Live / Online | Cyan `#00D2FF` |
+| Connecting | Blue `#008CFF` |
+| Idle / Offline | Gray `#475569` |
+| Error | Red `#EF4444` |
+
+---
+
+## Avoid on this page
+
+- Gold call buttons
+- Green live indicators
+- "Hackathon Demo" footer copy
+- Backend wiring placeholder text

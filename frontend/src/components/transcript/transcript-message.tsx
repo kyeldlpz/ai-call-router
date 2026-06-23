@@ -22,15 +22,20 @@ export function TranscriptMessage({ message }: TranscriptMessageProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 px-3 py-2.5 rounded-md border transition-colors duration-200",
+        "flex flex-col gap-1 px-3 py-2.5 rounded border transition-colors duration-200",
         isAi
-          ? "bg-muted/30 border-border border-l-2 border-l-primary"
-          : "bg-card border-border"
+          ? "bg-muted/30 border-border panel-rail-purple"
+          : "bg-muted border-border"
       )}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-medium uppercase tracking-wide flex items-center gap-1.5 text-muted-foreground">
-          <span className="w-4 h-4 rounded flex items-center justify-center bg-muted">
+          <span
+            className={cn(
+              "w-4 h-4 rounded flex items-center justify-center",
+              isAi ? "text-brand-purple" : "text-muted-foreground"
+            )}
+          >
             {isAi ? (
               <Bot className="w-2.5 h-2.5" aria-hidden="true" />
             ) : (

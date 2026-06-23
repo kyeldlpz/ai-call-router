@@ -19,19 +19,19 @@ export function TranscriptPanel({ messages, isActive }: TranscriptPanelProps) {
   }, [messages.length, messages[messages.length - 1]?.text]);
 
   return (
-    <Card className="h-full flex flex-col panel-surface border-0 ring-0">
+    <Card className="h-full flex flex-col panel-surface panel-rail-blue border-0 ring-0">
       <CardHeader className="pb-4 border-b border-border">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="label-caps mb-1">Live feed</p>
-            <CardTitle className="text-lg font-semibold tracking-tight">
+            <CardTitle className="text-lg font-semibold tracking-tight uppercase">
               Transcript
             </CardTitle>
           </div>
           {isActive && (
-            <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-intent-positive">
-              <span className="h-1.5 w-1.5 rounded-full bg-intent-positive" />
-              Recording
+            <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-primary border border-primary/40 px-2 py-0.5 rounded">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_rgba(0,210,255,0.8)]" />
+              Live
             </span>
           )}
         </div>

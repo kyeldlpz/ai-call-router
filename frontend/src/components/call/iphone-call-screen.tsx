@@ -107,7 +107,7 @@ export function IPhoneCallScreen({
       {/* Speech error warning (non-blocking, only during active call) */}
       {speechError && status === "active" && (
         <div className="mt-2 px-4 shrink-0 transition-all duration-300">
-          <p className="text-amber-400 text-xs text-center">{speechError}</p>
+          <p className="text-primary text-xs text-center">{speechError}</p>
         </div>
       )}
 
@@ -120,8 +120,8 @@ export function IPhoneCallScreen({
 
       {/* Browser not supported warning */}
       {!isSpeechSupported && status === "idle" && (
-        <div className="mx-4 mt-3 bg-amber-500/20 border border-amber-500/50 rounded-lg p-2 shrink-0">
-          <p className="text-amber-200 text-xs text-center">
+        <div className="mx-4 mt-3 bg-primary/10 border border-primary/30 rounded-lg p-2 shrink-0">
+          <p className="text-primary/90 text-xs text-center">
             Speech recognition not supported. Use Chrome or Edge for voice features.
           </p>
         </div>
