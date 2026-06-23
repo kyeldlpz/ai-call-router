@@ -1,28 +1,23 @@
-# RecoverAi — AI-Powered Revenue Recovery Command Center
+# RecoverAi
 
-RecoverAi intercepts inbound debtor calls, conducts intelligent intake conversations via AI, and delivers real-time intelligence to human agents before they ever pick up the phone.
+AI-powered Revenue Recovery Command Center. The AI acts as the first point of contact for inbound collections calls — answering immediately, conducting natural intake conversations, and streaming live transcripts to an agent dashboard.
 
 ## What It Does
 
-1. **AI Voice Intake** — AI answers the call instantly, conducts a natural intake conversation
-2. **Live Transcript** — Words stream to the agent dashboard in real-time as the caller speaks
-3. **Intent Detection** — Classifies caller intent mid-conversation (payment, dispute, hardship, settlement, etc.)
-4. **Opportunity Scoring** — Scores recovery opportunity (high/medium/low) based on detected signals
-5. **Agent Handoff Summary** — Generates a structured briefing with caller info, intent, score, and recommended action
+1. User clicks **Start Call**
+2. AI agent answers and greets the caller
+3. Natural voice conversation happens in real-time
+4. Live transcript streams to the dashboard
+5. Call ends, full transcript is preserved
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 16, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | FastAPI, Python 3.11+, Pydantic v2 |
-| AI | Ollama (local LLM — qwen2.5:7b or llama3) |
-| Voice STT | Browser Web Speech API (Chrome/Edge) |
-| Voice TTS | Browser SpeechSynthesis API |
-| Realtime | WebSocket (native browser API ↔ FastAPI) |
-| Storage | In-memory (mock data for demo) |
-
-**Cost: $0** — everything runs locally on your machine.
+| Frontend | Next.js 14, TypeScript, Tailwind CSS, shadcn/ui |
+| Backend | FastAPI, Python 3.11+ |
+| AI Voice | OpenAI Realtime API |
+| Storage | In-memory (mock data) |
 
 ## Quick Start
 
@@ -30,27 +25,19 @@ RecoverAi intercepts inbound debtor calls, conducts intelligent intake conversat
 
 - Node.js 18+
 - Python 3.11+
-- [Ollama](https://ollama.ai) with a model pulled (`ollama pull qwen2.5:7b`)
-- Chrome or Edge browser
+- OpenAI API key with Realtime API access
 
-### 1. Start Ollama
-
-```bash
-ollama serve
-```
-
-### 2. Start Backend
+### Backend
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+copy .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+uvicorn app.main:app --reload --port 8000
 ```
 
-### 3. Start Frontend
+### Frontend
 
 ```bash
 cd frontend
@@ -58,43 +45,64 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` in Chrome or Edge.
+Open http://localhost:3000 in Chrome.
 
-## Documentation
+## Environment Variables
 
-- [Setup Guide](docs/setup.md) — Detailed setup instructions and troubleshooting
-- [Hooks Architecture](docs/hooks-architecture.md) — Agent hook design
-- [Testing Strategy](docs/testing-strategy.md) — Testing approach
+Create `backend/.env`:
+
+```
+OPENAI_API_KEY=sk-your-key-here
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+FRONTEND_URL=http://localhost:3000
+```
 
 ## Project Structure
 
 ```
 ai-call-router/
-├── frontend/          # Next.js dashboard application
-├── backend/           # FastAPI backend with Ollama AI services
-├── docs/              # Documentation
-└── .kiro/             # Kiro steering and specs
+├── frontend/          Next.js application
+│   ├── src/app/       App Router pages
+│   ├── src/components/  UI components (call, transcript)
+│   ├── src/hooks/     Custom hooks (voice, audio, websocket)
+│   ├── src/context/   React Context + reducer
+│   ├── src/types/     Shared TypeScript types
+│   └── src/lib/       Utilities and API client
+├── backend/           FastAPI application
+│   ├── app/api/       REST + WebSocket endpoints
+│   ├── app/services/  Voice intake service (OpenAI Realtime)
+│   ├── app/models/    Pydantic data models
+│   ├── app/prompts/   AI system prompts
+│   └── app/repositories/  In-memory data store
+├── docs/              Sprint plan, architecture docs
+└── .kiro/             Specs, steering, skills
 ```
 
 ## API Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/health` | Health check |
-| POST | `/api/v1/calls` | Start a new call |
-| GET | `/api/v1/calls/{call_id}` | Get call details |
-| WS | `/ws/v1/call/{call_id}` | Real-time call session |
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | /api/v1/health | Health check |
+| POST | /api/v1/calls | Create a new call |
+| GET | /api/v1/calls/{id} | Get call state + transcript |
+| POST | /api/v1/calls/{id}/end | End a call |
+| WS | /ws/v1/call/{id} | Real-time voice + transcript |
 
-## How the Voice Works
+## MVP Scope
 
-```
-Your voice → Browser Speech Recognition (STT) → text
-text → WebSocket → FastAPI → Ollama (generates reply)
-reply text → WebSocket → Browser Speech Synthesis (TTS) → AI speaks
-```
+- AI Voice Intake (real-time conversation)
+- Live Transcript (streaming to dashboard)
 
-No cloud APIs needed for the voice pipeline. Ollama runs the LLM locally.
+## Not In Scope (Future)
+
+- Intent Detection
+- Opportunity Scoring
+- Agent Handoff Summary
+- Real telephony (Twilio)
+- Production database
+- Authentication
 
 ## License
 
-Private — Hackathon project.
+Hackathon project — not licensed for production use.
