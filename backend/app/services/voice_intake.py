@@ -14,7 +14,8 @@ from dataclasses import dataclass, field
 import httpx
 
 from app.config import get_settings
-from app.prompts.intake_system import INTAKE_SYSTEM_PROMPT
+from app.prompts.compose import compose_system_prompt
+from app.repositories.agent_config_repository import agent_config_repository
 
 logger = logging.getLogger(__name__)
 
@@ -133,11 +134,19 @@ async def create_conversation_session() -> ConversationSession:
     else:
         raise AIServiceError(f"Unknown AI provider: {settings.ai_provider}")
 
+    config = agent_config_repository.get()
+    system_prompt = compose_system_prompt(config)
+    logger.debug(
+        "Conversation session prompt: config_updated_at=%s chars=%d",
+        config.updated_at,
+        len(system_prompt),
+    )
+
     session = ConversationSession(
         session_id=f"session_{id(object())}",
         is_connected=True,
         messages=[
-            {"role": "system", "content": INTAKE_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
         ],
     )
 

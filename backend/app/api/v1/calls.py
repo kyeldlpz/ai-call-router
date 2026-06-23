@@ -47,6 +47,7 @@ async def get_call(call_id: str) -> ApiResponse[CallResponse]:
             ended_at=call.ended_at,
             transcript=call.transcript,
             duration_seconds=duration,
+            agent_config_snapshot=call.agent_config_snapshot,
         ),
     )
 
@@ -67,5 +68,6 @@ async def end_call(call_id: str) -> ApiResponse[CallResponse]:
             ended_at=call.ended_at,
             transcript=call.transcript,
             duration_seconds=0,
+            agent_config_snapshot=call.agent_config_snapshot,
         ),
     )

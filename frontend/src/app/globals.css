@@ -241,6 +241,12 @@
     background-position: right 0.75rem center;
     padding-right: 2.25rem;
   }
+
+  .textarea-terminal {
+    @apply w-full text-sm border border-border rounded bg-input text-foreground leading-relaxed transition-colors duration-200;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:border-border;
+    scrollbar-gutter: stable;
+  }
 }
 
 @keyframes pulse-ring {

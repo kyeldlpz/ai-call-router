@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from app.repositories.agent_config_repository import agent_config_repository
 from app.repositories.call_repository import call_repository
 from app.services.voice_intake import (
     AIServiceError,
@@ -77,7 +78,9 @@ async def call_session_handler(websocket: WebSocket, call_id: str) -> None:
         await websocket.close(code=4500, reason="AI service unavailable")
         return
 
-    # Mark call as active
+    # Mark call as active and snapshot agent config
+    config = agent_config_repository.get()
+    call_repository.set_agent_config_snapshot(call_id, config.updated_at)
     call_repository.update_status(call_id, "active")
 
     # Notify browser that session is ready

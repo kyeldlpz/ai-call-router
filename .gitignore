@@ -28,3 +28,6 @@ Thumbs.db
 # Build
 build/
 *.egg-info/
+
+# Runtime data
+backend/data/
