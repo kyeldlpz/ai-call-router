@@ -1,9 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AgentConfigSection } from "@/components/dashboard/agent-config-section";
 import { cn } from "@/lib/utils";
 import { BarChart3, FileText, Target } from "lucide-react";
 import type { CallStatus, STTProvider, TTSProvider } from "@/types";
+import type { AgentConfig, AgentConfigUpdate } from "@/types/agent-config";
 
 interface MissionControlPanelProps {
   status: CallStatus;
@@ -15,6 +17,15 @@ interface MissionControlPanelProps {
   isPlayingCue: boolean;
   interimText: string | null;
   showHandoff: boolean;
+  agentConfig: AgentConfig;
+  isAgentCustomized: boolean;
+  isAgentConfigLoading: boolean;
+  isAgentConfigSaving: boolean;
+  isAgentConfigSynced: boolean;
+  agentConfigLoadError: string | null;
+  onAgentConfigSave: (update: AgentConfigUpdate) => Promise<void>;
+  onAgentConfigReset: () => Promise<void>;
+  onAgentConfigRetry: () => Promise<void>;
   ttsProvider: TTSProvider;
   sttProvider: STTProvider;
   elevenlabsVoiceId: string;
@@ -55,6 +66,15 @@ export function MissionControlPanel({
   isPlayingCue,
   interimText,
   showHandoff,
+  agentConfig,
+  isAgentCustomized,
+  isAgentConfigLoading,
+  isAgentConfigSaving,
+  isAgentConfigSynced,
+  agentConfigLoadError,
+  onAgentConfigSave,
+  onAgentConfigReset,
+  onAgentConfigRetry,
   ttsProvider,
   sttProvider,
   elevenlabsVoiceId,
@@ -65,13 +85,13 @@ export function MissionControlPanel({
   const durationLabel = `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`;
 
   return (
-    <Card className="panel-surface panel-rail-purple border-0 ring-0 h-full flex flex-col">
+    <Card className="panel-surface border-0 ring-0 h-full flex flex-col">
       <CardHeader className="pb-4 border-b border-border">
         <CardTitle className="text-sm font-semibold tracking-tight uppercase">
           Mission Control
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
-          Session intelligence and voice configuration
+          Session intelligence, agent behavior, and voice configuration
         </p>
       </CardHeader>
 
@@ -177,6 +197,19 @@ export function MissionControlPanel({
             </div>
           </div>
         </section>
+
+        <AgentConfigSection
+          effectiveConfig={agentConfig}
+          isCustomized={isAgentCustomized}
+          isLoading={isAgentConfigLoading}
+          isSaving={isAgentConfigSaving}
+          isSynced={isAgentConfigSynced}
+          loadError={agentConfigLoadError}
+          locked={status === "active"}
+          onSave={onAgentConfigSave}
+          onReset={onAgentConfigReset}
+          onRetry={onAgentConfigRetry}
+        />
 
         <section className="pt-2 border-t border-border">
           <p className="label-caps mb-3">Voice</p>

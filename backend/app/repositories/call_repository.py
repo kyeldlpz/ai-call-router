@@ -46,6 +46,16 @@ class CallRepository:
             call.ended_at = _now_iso()
         return call
 
+    def set_agent_config_snapshot(
+        self, call_id: str, snapshot: str
+    ) -> CallSession | None:
+        """Store which agent config was active when the call started."""
+        call = self._calls.get(call_id)
+        if not call:
+            return None
+        call.agent_config_snapshot = snapshot
+        return call
+
     def add_transcript(
         self, call_id: str, speaker: Literal["ai", "caller"], text: str
     ) -> TranscriptEntry | None:

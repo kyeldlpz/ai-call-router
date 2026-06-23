@@ -32,6 +32,7 @@ class CallResponse(BaseModel):
     ended_at: str | None = None
     transcript: list[TranscriptEntry] = []
     duration_seconds: int = 0
+    agent_config_snapshot: str | None = None
 
 
 class CallSession(BaseModel):
@@ -41,3 +42,4 @@ class CallSession(BaseModel):
     transcript: list[TranscriptEntry] = []
     started_at: str = ""
     ended_at: str | None = None
+    agent_config_snapshot: str | None = None

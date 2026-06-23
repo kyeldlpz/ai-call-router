@@ -3,6 +3,7 @@
 import { CallPanel } from "@/components/call/call-panel";
 import { MissionControlPanel } from "@/components/dashboard/mission-control-panel";
 import { TranscriptPanel } from "@/components/transcript/transcript-panel";
+import { useAgentConfig } from "@/hooks/use-agent-config";
 import { useVoiceConversation } from "@/hooks/use-voice-conversation";
 import { useDeadAirCue } from "@/hooks/use-dead-air-cue";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,18 @@ export default function CallPage() {
     elevenlabsVoiceId,
     setElevenlabsVoiceId,
   } = useVoiceConversation();
+
+  const {
+    effectiveConfig: agentConfig,
+    isCustomized,
+    isLoading: isAgentConfigLoading,
+    isSaving: isAgentConfigSaving,
+    isSynced: isAgentConfigSynced,
+    loadError: agentConfigLoadError,
+    save: saveAgentConfig,
+    reset: resetAgentConfig,
+    refresh: refreshAgentConfig,
+  } = useAgentConfig();
 
   const { isPlayingCue } = useDeadAirCue({
     isProcessing,
@@ -107,6 +120,15 @@ export default function CallPage() {
               isPlayingCue={isPlayingCue}
               interimText={interimText}
               showHandoff={status === "complete"}
+              agentConfig={agentConfig}
+              isAgentCustomized={isCustomized}
+              isAgentConfigLoading={isAgentConfigLoading}
+              isAgentConfigSaving={isAgentConfigSaving}
+              isAgentConfigSynced={isAgentConfigSynced}
+              agentConfigLoadError={agentConfigLoadError}
+              onAgentConfigSave={saveAgentConfig}
+              onAgentConfigReset={resetAgentConfig}
+              onAgentConfigRetry={refreshAgentConfig}
               ttsProvider={ttsProvider}
               sttProvider={sttProvider}
               elevenlabsVoiceId={elevenlabsVoiceId}

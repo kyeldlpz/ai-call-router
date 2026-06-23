@@ -60,6 +60,8 @@ npm run dev
 
 Open `http://localhost:3000` in Chrome or Edge.
 
+**Agent behavior settings** use `GET /api/v1/agent-config`. If Mission Control shows a config error, restart the backend so it picks up the latest routes (`uvicorn` with `--reload`).
+
 ## Documentation
 
 - [Setup Guide](docs/setup.md) — Detailed setup instructions and troubleshooting
@@ -81,6 +83,9 @@ ai-call-router/
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/v1/health` | Health check |
+| GET | `/api/v1/agent-config` | Global agent prompt configuration |
+| PUT | `/api/v1/agent-config` | Update agent prompt configuration |
+| POST | `/api/v1/agent-config/reset` | Reset agent config to default preset |
 | POST | `/api/v1/calls` | Start a new call |
 | GET | `/api/v1/calls/{call_id}` | Get call details |
 | WS | `/ws/v1/call/{call_id}` | Real-time call session |
