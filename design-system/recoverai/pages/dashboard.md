@@ -18,10 +18,10 @@
 
 ## Page-specific color rails
 
-| Panel | Rail class |
-|-------|------------|
-| Transcript (hero) | `.panel-rail-blue` |
-| Mission Control | `.panel-rail-purple` |
+Use rails on **inner content only** — not full-height panel edges.
+
+| Element | Rail class |
+|---------|------------|
 | Intent block | `.panel-rail-blue` |
 | Opportunity score | `.panel-rail-purple` |
 | Agent handoff | `.panel-rail-cyan` |
@@ -56,6 +56,7 @@
 
 ## Avoid on this page
 
+- Full-height panel edge rails (reads as generic AI chrome)
 - Gold call buttons
 - Green live indicators
 - "Hackathon Demo" footer copy

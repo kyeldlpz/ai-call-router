@@ -19,7 +19,7 @@ export function TranscriptPanel({ messages, isActive }: TranscriptPanelProps) {
   }, [messages.length, messages[messages.length - 1]?.text]);
 
   return (
-    <Card className="h-full flex flex-col panel-surface panel-rail-blue border-0 ring-0">
+    <Card className="h-full flex flex-col panel-surface border-0 ring-0">
       <CardHeader className="pb-4 border-b border-border">
         <div className="flex items-end justify-between gap-4">
           <div>
