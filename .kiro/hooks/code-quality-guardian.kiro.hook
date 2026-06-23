@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "Code Quality Guardian",
+  "description": "SonarQube-style review",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review all generated code.\n\nCheck:\n\n* Duplicate logic\n* Large functions\n* Large components\n* Magic numbers\n* Dead code\n* Unused imports\n* Naming violations\n* Complexity issues\n\nRules:\n\n* Component max 300 lines\n* Hook max 200 lines\n* Service max 300 lines\n* Function max 50 lines\n\nProvide refactoring recommendations.\n\nDo not approve poor-quality code.\n"
+  }
+}
