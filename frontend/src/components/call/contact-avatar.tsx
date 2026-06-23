@@ -6,20 +6,30 @@ import { cn } from "@/lib/utils";
 interface ContactAvatarProps {
   isActive: boolean;
   isConnecting: boolean;
+  compact?: boolean;
 }
 
-export function ContactAvatar({ isActive }: ContactAvatarProps) {
+export function ContactAvatar({
+  isActive,
+  compact = false,
+}: ContactAvatarProps) {
   return (
     <div className="relative flex items-center justify-center">
       <div
         className={cn(
-          "relative flex items-center justify-center overflow-hidden",
-          "w-20 h-20 sm:w-24 sm:h-24",
-          "rounded-full bg-gradient-to-b from-secondary to-muted border border-border",
+          "relative flex items-center justify-center overflow-hidden rounded-full border border-border bg-gradient-to-b from-secondary to-muted",
+          compact ? "h-[4.5rem] w-[4.5rem]" : "h-20 w-20 sm:h-24 sm:w-24",
           isActive && "animate-avatar-glow"
         )}
       >
-        <BrandLogo size="avatar" className="scale-[0.88] sm:scale-90" />
+        <BrandLogo
+          size="avatar"
+          className={cn(
+            compact
+              ? "h-[3.25rem] w-[3.25rem] sm:h-14 sm:w-14"
+              : "scale-[0.88] sm:scale-90"
+          )}
+        />
       </div>
     </div>
   );

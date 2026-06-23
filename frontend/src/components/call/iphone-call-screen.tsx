@@ -4,6 +4,7 @@ import { ContactAvatar } from "./contact-avatar";
 import { CallingAnimation } from "./calling-animation";
 import { IPhoneCallControls } from "./iphone-call-controls";
 import type { CallStatus } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface IPhoneCallScreenProps {
   status: CallStatus;
@@ -40,98 +41,106 @@ export function IPhoneCallScreen({
 }: IPhoneCallScreenProps) {
   const isConnecting = status === "connecting";
   const isActive = status === "active" || status === "ending";
+  const isInCallLayout = isActive || isConnecting;
 
   return (
-    <div className="relative flex flex-col items-center h-full w-full bg-gradient-to-b from-gray-900 via-gray-950 to-black transition-all duration-300 overflow-hidden">
-      {/* Top spacer — just enough for Dynamic Island pill clearance */}
-      <div className="pt-14 shrink-0" />
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-[#0a0e17] via-black to-black transition-all duration-300">
+      <div className={cn("shrink-0", isInCallLayout ? "pt-12" : "pt-14")} />
 
-      {/* Contact avatar area */}
-      <div className="relative flex items-center justify-center mt-4 shrink-0">
-        <ContactAvatar
-          isActive={isActive}
-          isConnecting={isConnecting}
-        />
-        <CallingAnimation isActive={isConnecting} />
-      </div>
-
-      {/* Contact name */}
-      <h2 className="text-white text-xl font-medium mt-4 shrink-0 transition-all duration-300">
-        RecoverAi
-      </h2>
-
-      {/* Status text / timer / indicators */}
-      <div className="flex flex-col items-center mt-2 min-h-[2.5rem] shrink-0 transition-all duration-300">
-        {status === "idle" && (
-          <p className="text-white/70 text-sm">Ready to call</p>
+      <div
+        className={cn(
+          "flex min-h-0 flex-col items-center px-4",
+          isInCallLayout
+            ? "flex-1 justify-center gap-3 py-2"
+            : "mt-4 shrink-0"
         )}
-
-        {status === "connecting" && (
-          <p className="text-white/70 text-sm">Calling...</p>
-        )}
-
-        {status === "active" && (
-          <>
-            <p className="text-white text-lg font-mono tabular-nums">
-              {formatDuration(duration)}
-            </p>
-            <p className="text-white/70 text-sm mt-1">
-              {isSpeaking ? "Speaking..." : "Listening..."}
-            </p>
-          </>
-        )}
-
-        {status === "ending" && (
-          <>
-            <p className="text-white text-lg font-mono tabular-nums">
-              {formatDuration(duration)}
-            </p>
-            <p className="text-white/70 text-sm mt-1">Ending...</p>
-          </>
-        )}
-
-        {status === "complete" && (
-          <>
-            <p className="text-white/70 text-sm">Call Ended</p>
-            <p className="text-white text-lg font-mono tabular-nums mt-1">
-              {formatDuration(duration)}
-            </p>
-          </>
-        )}
-
-        {status === "error" && (
-          <p className="text-white/70 text-sm">Call Failed</p>
-        )}
-      </div>
-
-      {/* Speech error warning (non-blocking, only during active call) */}
-      {speechError && status === "active" && (
-        <div className="mt-2 px-4 shrink-0 transition-all duration-300">
-          <p className="text-primary text-xs text-center">{speechError}</p>
+      >
+        <div className="relative flex shrink-0 items-center justify-center">
+          <ContactAvatar
+            isActive={isActive}
+            isConnecting={isConnecting}
+            compact={isInCallLayout}
+          />
+          <CallingAnimation isActive={isConnecting} />
         </div>
-      )}
 
-      {/* Error banner */}
-      {status === "error" && error && (
-        <div className="mx-4 mt-3 bg-red-500/20 border border-red-500/50 rounded-lg p-2 shrink-0 transition-all duration-300">
-          <p className="text-red-200 text-xs text-center">{error}</p>
+        <h2 className="shrink-0 text-lg font-medium text-white transition-all duration-300">
+          RecoverAi
+        </h2>
+
+        <div className="flex min-h-[2.25rem] shrink-0 flex-col items-center transition-all duration-300">
+          {status === "idle" && (
+            <p className="text-sm text-white/70">Ready to call</p>
+          )}
+
+          {status === "connecting" && (
+            <p className="text-sm text-white/70">Calling...</p>
+          )}
+
+          {status === "active" && (
+            <>
+              <p className="font-mono text-xl tabular-nums text-white">
+                {formatDuration(duration)}
+              </p>
+              <p className="mt-0.5 text-sm text-primary/90">
+                {isSpeaking ? "Speaking…" : "Listening…"}
+              </p>
+            </>
+          )}
+
+          {status === "ending" && (
+            <>
+              <p className="font-mono text-xl tabular-nums text-white">
+                {formatDuration(duration)}
+              </p>
+              <p className="mt-0.5 text-sm text-white/70">Ending…</p>
+            </>
+          )}
+
+          {status === "complete" && (
+            <>
+              <p className="text-sm text-white/70">Call Ended</p>
+              <p className="mt-1 font-mono text-lg tabular-nums text-white">
+                {formatDuration(duration)}
+              </p>
+            </>
+          )}
+
+          {status === "error" && (
+            <p className="text-sm text-white/70">Call Failed</p>
+          )}
         </div>
-      )}
 
-      {/* Browser not supported warning */}
-      {!isSpeechSupported && status === "idle" && (
-        <div className="mx-4 mt-3 bg-primary/10 border border-primary/30 rounded-lg p-2 shrink-0">
-          <p className="text-primary/90 text-xs text-center">
-            Speech recognition not supported. Use Chrome or Edge for voice features.
+        {speechError && status === "active" && (
+          <p className="max-w-[220px] shrink-0 text-center text-xs text-primary">
+            {speechError}
           </p>
-        </div>
-      )}
+        )}
 
-      {/* Spacer to push controls to bottom */}
-      <div className="flex-grow min-h-4" />
+        {status === "error" && error && (
+          <div className="w-full max-w-[240px] shrink-0 rounded-lg border border-red-500/50 bg-red-500/20 p-2">
+            <p className="text-center text-xs text-red-200">{error}</p>
+          </div>
+        )}
 
-      {/* Call controls bar — safe bottom area */}
-      <div className="w-full px-4 pb-6 shrink-0 transition-all duration-300">
+        {!isSpeechSupported && status === "idle" && (
+          <div className="w-full max-w-[240px] shrink-0 rounded-lg border border-primary/30 bg-primary/10 p-2">
+            <p className="text-center text-xs text-primary/90">
+              Speech recognition not supported. Use Chrome or Edge for voice
+              features.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {!isInCallLayout && <div className="min-h-4 flex-grow" />}
+
+      <div
+        className={cn(
+          "w-full shrink-0 px-3 transition-all duration-300",
+          isInCallLayout ? "pb-5 pt-2" : "pb-6"
+        )}
+      >
         <IPhoneCallControls
           status={status}
           isMuted={isMuted}
@@ -140,6 +149,12 @@ export function IPhoneCallScreen({
           onReset={onReset}
           onToggleMute={onToggleMute}
         />
+        {isInCallLayout && (
+          <div
+            className="mx-auto mt-4 h-1 w-[34%] min-w-[96px] max-w-[120px] rounded-full bg-white/25"
+            aria-hidden="true"
+          />
+        )}
       </div>
     </div>
   );

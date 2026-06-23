@@ -243,9 +243,28 @@
   }
 
   .textarea-terminal {
-    @apply w-full text-sm border border-border rounded bg-input text-foreground leading-relaxed transition-colors duration-200;
+    @apply w-full text-sm border border-border rounded-md bg-input text-foreground leading-relaxed transition-colors duration-200;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:border-border;
-    scrollbar-gutter: stable;
+    @apply resize-none overflow-y-auto disabled:cursor-not-allowed disabled:opacity-60;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.22) transparent;
+  }
+
+  .textarea-terminal::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .textarea-terminal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .textarea-terminal::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.22);
+    border-radius: 9999px;
+  }
+
+  .textarea-terminal::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 210, 255, 0.35);
   }
 }
 

@@ -2,6 +2,7 @@
 
 import { Phone, PhoneOff, Mic, MicOff, Volume2, Grid3X3 } from "lucide-react";
 import type { CallStatus } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface IPhoneCallControlsProps {
   status: CallStatus;
@@ -13,10 +14,29 @@ interface IPhoneCallControlsProps {
 }
 
 const controlButtonBase =
-  "rounded-full flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none";
+  "rounded-full flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40";
 
-const callCtaClasses =
-  "call-cta w-16 h-16 min-h-11 min-w-11";
+const callCtaClasses = "call-cta w-16 h-16 min-h-11 min-w-11";
+
+const secondaryControl =
+  "h-11 w-11 min-h-11 min-w-11 border border-white/10 bg-white/10 text-white hover:bg-white/15";
+
+function ControlCell({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      {children}
+      <span className="text-[10px] uppercase tracking-wide text-white/55">
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export function IPhoneCallControls({
   status,
@@ -34,7 +54,7 @@ export function IPhoneCallControls({
           className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="Start call"
         >
-          <Phone className="w-7 h-7 text-current" />
+          <Phone className="h-7 w-7 text-current" />
         </button>
         <span className="text-xs text-white/70">call</span>
       </div>
@@ -46,10 +66,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onEnd}
-          className={`w-16 h-16 min-h-11 min-w-11 bg-red-500 hover:bg-red-600 ${controlButtonBase}`}
+          className={`h-16 w-16 min-h-11 min-w-11 bg-red-500 hover:bg-red-600 ${controlButtonBase}`}
           aria-label="End call"
         >
-          <PhoneOff className="w-7 h-7 text-white" />
+          <PhoneOff className="h-7 w-7 text-white" />
         </button>
         <span className="text-xs text-white/70">end</span>
       </div>
@@ -60,62 +80,69 @@ export function IPhoneCallControls({
     const isDisabled = status === "ending";
 
     return (
-      <div className="flex items-end justify-center gap-6">
-        <div className="flex flex-col items-center gap-2">
+      <div className="grid w-full grid-cols-4 items-end justify-items-center gap-x-1">
+        <ControlCell label="mute">
           <button
             onClick={onToggleMute}
             disabled={isDisabled}
-            className={`w-14 h-14 min-h-11 min-w-11 ${controlButtonBase} ${
-              isMuted
-                ? "bg-white text-gray-900"
-                : "bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
-            } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={cn(
+              controlButtonBase,
+              secondaryControl,
+              isMuted && "border-white/20 bg-white text-gray-900 hover:bg-white/90",
+              isDisabled && "cursor-not-allowed opacity-50"
+            )}
             aria-label={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? (
-              <MicOff className="w-6 h-6" />
+              <MicOff className="h-5 w-5" />
             ) : (
-              <Mic className="w-6 h-6" />
+              <Mic className="h-5 w-5" />
             )}
           </button>
-          <span className="text-xs text-white/70">mute</span>
-        </div>
+        </ControlCell>
 
-        <div className="flex flex-col items-center gap-2">
+        <ControlCell label="keypad">
           <button
             disabled
-            className={`w-14 h-14 min-h-11 min-w-11 bg-white/10 backdrop-blur-sm opacity-50 cursor-not-allowed ${controlButtonBase}`}
+            className={cn(
+              controlButtonBase,
+              secondaryControl,
+              "cursor-not-allowed opacity-40"
+            )}
             aria-label="Keypad"
           >
-            <Grid3X3 className="w-6 h-6 text-white" />
+            <Grid3X3 className="h-5 w-5" />
           </button>
-          <span className="text-xs text-white/70">keypad</span>
-        </div>
+        </ControlCell>
 
-        <div className="flex flex-col items-center gap-2">
+        <ControlCell label="speaker">
           <button
             disabled
-            className={`w-14 h-14 min-h-11 min-w-11 bg-white/10 backdrop-blur-sm opacity-50 cursor-not-allowed ${controlButtonBase}`}
+            className={cn(
+              controlButtonBase,
+              secondaryControl,
+              "cursor-not-allowed opacity-40"
+            )}
             aria-label="Speaker"
           >
-            <Volume2 className="w-6 h-6 text-white" />
+            <Volume2 className="h-5 w-5" />
           </button>
-          <span className="text-xs text-white/70">speaker</span>
-        </div>
+        </ControlCell>
 
-        <div className="flex flex-col items-center gap-2">
+        <ControlCell label="end">
           <button
             onClick={onEnd}
             disabled={isDisabled}
-            className={`w-16 h-16 min-h-11 min-w-11 bg-red-500 ${controlButtonBase} ${
-              isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-red-600"
-            }`}
+            className={cn(
+              "h-12 w-12 min-h-11 min-w-11 bg-red-500 text-white",
+              controlButtonBase,
+              isDisabled ? "cursor-not-allowed opacity-50" : "hover:bg-red-600"
+            )}
             aria-label="End call"
           >
-            <PhoneOff className="w-7 h-7 text-white" />
+            <PhoneOff className="h-6 w-6" />
           </button>
-          <span className="text-xs text-white/70">end</span>
-        </div>
+        </ControlCell>
       </div>
     );
   }
@@ -128,7 +155,7 @@ export function IPhoneCallControls({
           className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="New call"
         >
-          <Phone className="w-7 h-7 text-current" />
+          <Phone className="h-7 w-7 text-current" />
         </button>
         <span className="text-xs text-white/70">new call</span>
       </div>
@@ -143,7 +170,7 @@ export function IPhoneCallControls({
           className={`${callCtaClasses} ${controlButtonBase}`}
           aria-label="Retry call"
         >
-          <Phone className="w-7 h-7 text-current" />
+          <Phone className="h-7 w-7 text-current" />
         </button>
         <span className="text-xs text-white/70">retry</span>
       </div>

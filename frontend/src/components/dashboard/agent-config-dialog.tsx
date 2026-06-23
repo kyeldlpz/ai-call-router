@@ -80,7 +80,7 @@ export function AgentConfigDialog({
       title="Agent behavior"
       description="Configure how the AI answers inbound calls. Safety guardrails always apply."
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
         {loadError && (
           <div
             className="rounded border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
@@ -143,6 +143,7 @@ export function AgentConfigDialog({
                 onChange={(e) => setCustomSystemPrompt(e.target.value)}
                 disabled={readOnly}
                 rows={6}
+                spellCheck={false}
                 placeholder="Leave empty to use structured fields above"
               />
             </div>
@@ -200,8 +201,8 @@ function Field({
   rows: number;
 }) {
   return (
-    <div>
-      <label htmlFor={id} className="text-xs text-muted-foreground block mb-1.5">
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="label-caps block">
         {label}
       </label>
       <Textarea
@@ -210,6 +211,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         rows={rows}
+        spellCheck={false}
       />
     </div>
   );
