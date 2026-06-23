@@ -75,7 +75,7 @@ export function MissionControlPanel({
         </p>
       </CardHeader>
 
-      <CardContent className="pt-5 flex-1 overflow-y-auto space-y-6">
+      <CardContent className="pt-5 flex-1 min-h-0 overflow-y-auto space-y-6">
         <section>
           <p className="label-caps mb-3">Session</p>
           <dl className="space-y-2.5">
