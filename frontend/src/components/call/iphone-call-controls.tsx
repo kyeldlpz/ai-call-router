@@ -12,6 +12,9 @@ interface IPhoneCallControlsProps {
   onToggleMute: () => void;
 }
 
+const controlButtonBase =
+  "rounded-full flex items-center justify-center transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50";
+
 export function IPhoneCallControls({
   status,
   isMuted,
@@ -25,10 +28,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onStart}
-          className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
+          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
           aria-label="Start call"
         >
-          <Phone className="w-7 h-7 text-white" />
+          <Phone className="w-7 h-7 text-primary-foreground" />
         </button>
         <span className="text-xs text-white/70">call</span>
       </div>
@@ -40,7 +43,7 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onEnd}
-          className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-colors duration-200"
+          className={`w-16 h-16 min-h-11 min-w-11 bg-red-500 hover:bg-red-600 ${controlButtonBase}`}
           aria-label="End call"
         >
           <PhoneOff className="w-7 h-7 text-white" />
@@ -55,16 +58,15 @@ export function IPhoneCallControls({
 
     return (
       <div className="flex items-end justify-center gap-6">
-        {/* Mute button */}
         <div className="flex flex-col items-center gap-2">
           <button
             onClick={onToggleMute}
             disabled={isDisabled}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors duration-200 ${
+            className={`w-14 h-14 min-h-11 min-w-11 ${controlButtonBase} ${
               isMuted
                 ? "bg-white text-gray-900"
-                : "bg-white/10 backdrop-blur-sm text-white"
-            } ${isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"}`}
+                : "bg-white/10 backdrop-blur-sm text-white hover:bg-white/20"
+            } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-label={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? (
@@ -76,11 +78,10 @@ export function IPhoneCallControls({
           <span className="text-xs text-white/70">mute</span>
         </div>
 
-        {/* Keypad button (decorative/disabled) */}
         <div className="flex flex-col items-center gap-2">
           <button
             disabled
-            className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-50 cursor-not-allowed"
+            className={`w-14 h-14 min-h-11 min-w-11 bg-white/10 backdrop-blur-sm opacity-50 cursor-not-allowed ${controlButtonBase}`}
             aria-label="Keypad"
           >
             <Grid3X3 className="w-6 h-6 text-white" />
@@ -88,11 +89,10 @@ export function IPhoneCallControls({
           <span className="text-xs text-white/70">keypad</span>
         </div>
 
-        {/* Speaker button (decorative/disabled) */}
         <div className="flex flex-col items-center gap-2">
           <button
             disabled
-            className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center opacity-50 cursor-not-allowed"
+            className={`w-14 h-14 min-h-11 min-w-11 bg-white/10 backdrop-blur-sm opacity-50 cursor-not-allowed ${controlButtonBase}`}
             aria-label="Speaker"
           >
             <Volume2 className="w-6 h-6 text-white" />
@@ -100,12 +100,11 @@ export function IPhoneCallControls({
           <span className="text-xs text-white/70">speaker</span>
         </div>
 
-        {/* End call button */}
         <div className="flex flex-col items-center gap-2">
           <button
             onClick={onEnd}
             disabled={isDisabled}
-            className={`w-16 h-16 rounded-full bg-red-500 flex items-center justify-center transition-colors duration-200 ${
+            className={`w-16 h-16 min-h-11 min-w-11 bg-red-500 ${controlButtonBase} ${
               isDisabled ? "opacity-50 cursor-not-allowed" : "hover:bg-red-600"
             }`}
             aria-label="End call"
@@ -123,10 +122,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onReset}
-          className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
+          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
           aria-label="New call"
         >
-          <Phone className="w-7 h-7 text-white" />
+          <Phone className="w-7 h-7 text-primary-foreground" />
         </button>
         <span className="text-xs text-white/70">new call</span>
       </div>
@@ -138,10 +137,10 @@ export function IPhoneCallControls({
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={onReset}
-          className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
+          className={`w-16 h-16 min-h-11 min-w-11 bg-primary hover:bg-amber-400 ${controlButtonBase}`}
           aria-label="Retry call"
         >
-          <Phone className="w-7 h-7 text-white" />
+          <Phone className="w-7 h-7 text-primary-foreground" />
         </button>
         <span className="text-xs text-white/70">retry</span>
       </div>

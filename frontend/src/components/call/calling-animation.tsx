@@ -12,15 +12,15 @@ export function CallingAnimation({ isActive }: CallingAnimationProps) {
   return (
     <>
       <div
-        className="absolute inset-0 rounded-full border-2 border-green-400/40 animate-pulse-ring will-change-[transform,opacity]"
+        className="absolute inset-0 rounded-full border-2 border-primary/50 animate-pulse-ring will-change-[transform,opacity]"
         style={{ animationDelay: "0s" }}
       />
       <div
-        className="absolute inset-0 rounded-full border-2 border-green-400/40 animate-pulse-ring will-change-[transform,opacity]"
+        className="absolute inset-0 rounded-full border-2 border-primary/50 animate-pulse-ring will-change-[transform,opacity]"
         style={{ animationDelay: "0.5s" }}
       />
       <div
-        className="absolute inset-0 rounded-full border-2 border-green-400/40 animate-pulse-ring will-change-[transform,opacity]"
+        className="absolute inset-0 rounded-full border-2 border-primary/50 animate-pulse-ring will-change-[transform,opacity]"
         style={{ animationDelay: "1.0s" }}
       />
     </>

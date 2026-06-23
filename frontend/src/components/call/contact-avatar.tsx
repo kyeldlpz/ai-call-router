@@ -7,19 +7,20 @@ interface ContactAvatarProps {
   isConnecting: boolean;
 }
 
-export function ContactAvatar({ isActive, isConnecting }: ContactAvatarProps) {
+export function ContactAvatar({ isActive }: ContactAvatarProps) {
   return (
     <div className="relative flex items-center justify-center">
       <div
         className={`
           relative flex items-center justify-center
           w-20 h-20 sm:w-24 sm:h-24
-          rounded-full bg-gradient-to-br from-blue-500 to-purple-600
-          ${isActive ? "shadow-lg shadow-blue-500/50 animate-avatar-glow" : ""}
-          ${isConnecting ? "" : ""}
+          rounded-full bg-gradient-to-b from-secondary to-muted border border-border
+          ${isActive ? "animate-avatar-glow" : ""}
         `}
       >
-        <Headset className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-card border border-border flex items-center justify-center">
+          <Headset className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+        </div>
       </div>
     </div>
   );

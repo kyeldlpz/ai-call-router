@@ -1,5 +1,6 @@
 "use client";
 
+import { Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TranscriptMessage as TMessage } from "@/types";
 
@@ -21,33 +22,31 @@ export function TranscriptMessage({ message }: TranscriptMessageProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-1.5 px-4 py-3 rounded-xl transition-colors",
+        "flex flex-col gap-1 px-3 py-2.5 rounded-md border transition-colors duration-200",
         isAi
-          ? "bg-muted/70 border border-border/30"
-          : "bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100/50 dark:border-blue-900/30"
+          ? "bg-muted/30 border-border border-l-2 border-l-primary"
+          : "bg-card border-border"
       )}
     >
-      <div className="flex items-center justify-between">
-        <span className={cn(
-          "text-xs font-semibold flex items-center gap-1.5",
-          isAi ? "text-muted-foreground" : "text-blue-700 dark:text-blue-400"
-        )}>
-          <span className={cn(
-            "w-5 h-5 rounded-full flex items-center justify-center text-[10px]",
-            isAi ? "bg-gray-200 dark:bg-gray-700" : "bg-blue-100 dark:bg-blue-900/50"
-          )}>
-            {isAi ? "🤖" : "👤"}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium uppercase tracking-wide flex items-center gap-1.5 text-muted-foreground">
+          <span className="w-4 h-4 rounded flex items-center justify-center bg-muted">
+            {isAi ? (
+              <Bot className="w-2.5 h-2.5" aria-hidden="true" />
+            ) : (
+              <User className="w-2.5 h-2.5" aria-hidden="true" />
+            )}
           </span>
-          <span>{isAi ? "AI Agent" : "Caller"}</span>
+          {isAi ? "AI Agent" : "Caller"}
         </span>
-        <span className="text-[10px] text-muted-foreground/60 tabular-nums font-mono">
+        <span className="text-[10px] text-muted-foreground tabular-nums font-mono">
           {formatTime(message.timestamp)}
         </span>
       </div>
-      <p className="text-sm leading-relaxed pl-7">
+      <p className="text-sm leading-relaxed text-foreground/90 pl-5">
         {message.text}
         {message.isStreaming && (
-          <span className="inline-block w-1.5 h-4 ml-0.5 bg-foreground/70 animate-pulse rounded-sm" />
+          <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-primary/80 rounded-sm" />
         )}
       </p>
     </div>
