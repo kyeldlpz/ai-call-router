@@ -19,14 +19,10 @@ settings = get_settings()
 
 app = FastAPI(title="RecoverAi API", version="0.1.0")
 
-# CORS — allow frontend localhost origins
+# CORS — allow all origins for hackathon deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        settings.frontend_url,
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
