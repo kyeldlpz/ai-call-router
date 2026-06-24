@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     elevenlabs_voice_id: str = "onwK4e9ZLuTAKqWW03F9"  # "Daniel" - warm conversational male voice (free tier)
     elevenlabs_model_id: str = "eleven_multilingual_v2"
 
+    # Supabase
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_service_key: str = ""
+
     # Server
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
