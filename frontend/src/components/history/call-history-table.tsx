@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -70,31 +70,35 @@ interface CallHistoryTableProps {
 export function CallHistoryTable({ refreshTrigger }: CallHistoryTableProps) {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const lastDataRef = useRef<string>("");
 
-  const fetchCalls = async () => {
+  const fetchCalls = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await fetch(`${API_BASE}/api/v1/calls`);
       const data = await res.json();
       if (data.success && data.data) {
-        setCalls(data.data);
+        // Only update state if data actually changed (prevents flicker)
+        const serialized = JSON.stringify(data.data);
+        if (serialized !== lastDataRef.current) {
+          lastDataRef.current = serialized;
+          setCalls(data.data);
+        }
       }
     } catch {
-      // Silent fail — table just stays empty
-    } finally {
-      setLoading(false);
+      // Silent fail — table just stays as-is
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchCalls();
-  }, [refreshTrigger]);
+    setLoading(true);
+    fetchCalls().finally(() => setLoading(false));
+  }, [refreshTrigger, fetchCalls]);
 
-  // Auto-refresh every 10 seconds
+  // Auto-refresh every 10 seconds (no loading state to avoid flicker)
   useEffect(() => {
     const interval = setInterval(fetchCalls, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchCalls]);
 
   if (calls.length === 0 && !loading) {
     return null; // Don't show empty table
