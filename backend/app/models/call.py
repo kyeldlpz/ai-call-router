@@ -22,6 +22,15 @@ class CallCreatedResponse(BaseModel):
     websocket_url: str
 
 
+class CallSummary(BaseModel):
+    """AI-extracted call summary metadata."""
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    caller_name: str | None = None
+    category: str = "unknown"
+    summary: str = ""
+
+
 class CallResponse(BaseModel):
     """Full call state response."""
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
@@ -33,6 +42,7 @@ class CallResponse(BaseModel):
     transcript: list[TranscriptEntry] = []
     duration_seconds: int = 0
     agent_config_snapshot: str | None = None
+    call_summary: CallSummary | None = None
 
 
 class CallSession(BaseModel):
@@ -43,3 +53,4 @@ class CallSession(BaseModel):
     started_at: str = ""
     ended_at: str | None = None
     agent_config_snapshot: str | None = None
+    call_summary: CallSummary | None = None

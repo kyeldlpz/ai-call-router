@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { CallPanel } from "@/components/call/call-panel";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { CallHistoryTable } from "@/components/history/call-history-table";
 import { MissionControlPanel } from "@/components/dashboard/mission-control-panel";
 import { TranscriptPanel } from "@/components/transcript/transcript-panel";
 import { useAgentConfig } from "@/hooks/use-agent-config";
@@ -10,6 +12,7 @@ import { useDeadAirCue } from "@/hooks/use-dead-air-cue";
 import { cn } from "@/lib/utils";
 
 export default function CallPage() {
+  const [historyRefresh, setHistoryRefresh] = useState(0);
   const {
     status,
     transcript,
@@ -56,6 +59,16 @@ export default function CallPage() {
 
   const isCallActive = status === "active" || status === "connecting";
 
+  // Refresh call history table when a call completes
+  const [prevStatus, setPrevStatus] = useState(status);
+  if (status === "complete" && prevStatus !== "complete") {
+    // Delay slightly to allow backend summarization to finish
+    setTimeout(() => setHistoryRefresh((n) => n + 1), 3000);
+  }
+  if (status !== prevStatus) {
+    setPrevStatus(status);
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden deck-shell">
       <header className="border-b border-border px-6 py-3.5 flex items-center justify-between bg-background-elevated">
@@ -87,8 +100,8 @@ export default function CallPage() {
         </div>
       </header>
 
-      <main className="flex-1 p-4 sm:p-5 min-h-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 h-full max-w-[1600px] mx-auto">
+      <main className="flex-1 p-4 sm:p-5 min-h-0 overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 h-auto lg:h-[calc(100%-80px)] max-w-[1600px] mx-auto">
           <div className="lg:col-span-3 flex items-center justify-center min-h-0 order-2 lg:order-1">
             <div className="panel-surface p-4 w-full max-w-[360px] flex items-center justify-center">
               <CallPanel
@@ -144,6 +157,11 @@ export default function CallPage() {
               onElevenlabsVoiceChange={setElevenlabsVoiceId}
             />
           </div>
+        </div>
+
+        {/* Call History Table */}
+        <div className="max-w-[1600px] mx-auto mt-4">
+          <CallHistoryTable refreshTrigger={historyRefresh} />
         </div>
       </main>
 

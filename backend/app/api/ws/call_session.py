@@ -14,6 +14,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 
 from app.repositories.agent_config_repository import agent_config_repository
 from app.repositories.call_repository import call_repository
+from app.services.call_summarizer import summarize_call
 from app.services.voice_intake import (
     AIServiceError,
     ConversationSession,
@@ -173,4 +174,20 @@ async def call_session_handler(websocket: WebSocket, call_id: str) -> None:
         if session:
             await close_session(session)
         call_repository.update_status(call_id, "complete")
+
+        # Run post-call summarization (non-blocking, best-effort)
+        call = call_repository.get_call(call_id)
+        if call and call.transcript:
+            try:
+                result = await summarize_call(call.transcript)
+                call_repository.set_call_summary(
+                    call_id,
+                    caller_name=result.caller_name,
+                    category=result.category,
+                    summary=result.summary,
+                )
+                logger.info(f"Call summarized: call={call_id}, category={result.category}")
+            except Exception as e:
+                logger.warning(f"Post-call summarization failed for call={call_id}: {e}")
+
         logger.info(f"Call session ended: call={call_id}")

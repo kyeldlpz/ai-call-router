@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Literal
 from uuid import uuid4
 
-from app.models.call import CallSession
+from app.models.call import CallSession, CallSummary
 from app.models.transcript import TranscriptEntry
 
 
@@ -71,6 +71,26 @@ class CallRepository:
         )
         call.transcript.append(entry)
         return entry
+
+    def set_call_summary(
+        self, call_id: str, caller_name: str | None, category: str, summary: str
+    ) -> CallSession | None:
+        """Store the AI-extracted call summary."""
+        call = self._calls.get(call_id)
+        if not call:
+            return None
+        call.call_summary = CallSummary(
+            caller_name=caller_name,
+            category=category,
+            summary=summary,
+        )
+        return call
+
+    def list_completed_calls(self) -> list[CallSession]:
+        """Return all completed calls, most recent first."""
+        completed = [c for c in self._calls.values() if c.status == "complete"]
+        completed.sort(key=lambda c: c.ended_at or c.started_at, reverse=True)
+        return completed
 
 
 # Singleton instance used across the application
